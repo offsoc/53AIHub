@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+	"errors"
 
 	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
@@ -271,7 +271,7 @@ func BatchSubmitGroups(c *gin.Context) {
 		Nickname: config.GetUserNickname(c),
 		Module:   model.GetModuleByGroupType(int64(groupType)),
 		Action:   model.SystemLogActionUpdate,
-		Content:  fmt.Sprint("管理了分组"),
+		Content:  "管理了分组",
 		IP:       utils.GetClientIP(c),
 	}
 	model.CreateSystemLog(&log)
@@ -282,6 +282,12 @@ func BatchSubmitGroups(c *gin.Context) {
 // AddAgentsToGroupRequest defines the request structure for adding Agents to a Group
 type AddAgentsToGroupRequest struct {
 	AgentIDs []int64 `json:"agent_ids" binding:"required" example:"1,2,3"` // Array of Agent IDs
+}
+
+// AddResourcesToGroupRequest defines the request structure for adding resources to a Group
+type AddResourcesToGroupRequest struct {
+	ResourceIDs []int64 `json:"resource_ids" binding:"required" example:"1,2,3"` // Array of Resource IDs
+	ResourceType string `json:"resource_type" binding:"required" example:"agent, prompt, ai_link"` // Type of resource
 }
 
 // @Summary Add Agents to Group
@@ -368,9 +374,111 @@ func AddAgentsToGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }
 
+// @Summary Add Resources to Group
+// @Description Add multiple resources to a specified Group
+// @Tags Group
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Param request body AddResourcesToGroupRequest true "Array of Resource IDs and Resource Type"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/groups/{id}/resources [post]
+func AddResourcesToGroup(c *gin.Context) {
+	// Parse Group ID
+	groupID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	// Get Group information, verify its existence
+	group, err := model.GetGroupByID(int64(groupID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+		return
+	}
+
+	// Verify enterprise permissions
+	if group.Eid != config.GetEID(c) {
+		c.JSON(http.StatusForbidden, model.NotFound.ToResponse(nil))
+		return
+	}
+
+	// Parse request body
+	var request AddResourcesToGroupRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Validate resource type
+	validTypes := map[string]bool{
+		model.ResourceTypeAgent:   true,
+		model.ResourceTypeAILink:  true,
+		model.ResourceTypePrompt:  true,
+	}
+	
+	if !validTypes[request.ResourceType] {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("invalid resource type")))
+		return
+	}
+
+	// Begin transaction
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+
+	// Batch create ResourcePermission records
+	for _, resourceID := range request.ResourceIDs {
+		permission := model.ResourcePermission{
+			GroupID:      int64(groupID),
+			ResourceID:   resourceID,
+			ResourceType: request.ResourceType,
+			Permission:   model.PermissionRead,
+		}
+
+		// Check if the same permission record already exists
+		var count int64
+		if err := tx.Model(&model.ResourcePermission{}).
+			Where("group_id = ? AND resource_id = ? AND resource_type = ?",
+				groupID, resourceID, request.ResourceType).
+			Count(&count).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+
+		// If it doesn't exist, create it
+		if count == 0 {
+			if err := tx.Create(&permission).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+				return
+			}
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
 // RemoveAgentsFromGroupRequest defines the request structure for removing Agents from a Group
 type RemoveAgentsFromGroupRequest struct {
 	AgentIDs []int64 `json:"agent_ids" binding:"required" example:"1,2,3"` // Array of Agent IDs to remove
+}
+
+// RemoveResourcesFromGroupRequest defines the request structure for removing resources from a Group
+type RemoveResourcesFromGroupRequest struct {
+	ResourceIDs []int64 `json:"resource_ids" binding:"required" example:"1,2,3"` // Array of Resource IDs to remove
+	ResourceType string `json:"resource_type" binding:"required" example:"agent, prompt, ai_link"` // Type of resource
 }
 
 // @Summary Remove Agents from Group
@@ -427,6 +535,87 @@ func RemoveAgentsFromGroup(c *gin.Context) {
 	// Batch delete ResourcePermission records
 	if err := tx.Where("group_id = ? AND resource_id IN ? AND resource_type = ?",
 		groupID, request.AgentIDs, model.ResourceTypeAgent).
+		Delete(&model.ResourcePermission{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+// @Summary Remove Resources from Group
+// @Description Remove multiple resources from a specified Group
+// @Tags Group
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Param request body RemoveResourcesFromGroupRequest true "Array of Resource IDs and Resource Type to remove"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/groups/{id}/resources [delete]
+func RemoveResourcesFromGroup(c *gin.Context) {
+	// Parse Group ID
+	groupID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	// Get Group information, verify its existence
+	group, err := model.GetGroupByID(int64(groupID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+		return
+	}
+
+	// Verify enterprise permissions
+	if group.Eid != config.GetEID(c) {
+		c.JSON(http.StatusForbidden, model.NotFound.ToResponse(nil))
+		return
+	}
+
+	// Parse request body
+	var request RemoveResourcesFromGroupRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Validate resource type
+	validTypes := map[string]bool{
+		model.ResourceTypeAgent:   true,
+		model.ResourceTypeAILink:  true,
+		model.ResourceTypePrompt:  true,
+	}
+	
+	if !validTypes[request.ResourceType] {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("invalid resource type")))
+		return
+	}
+
+	// If ResourceIDs is empty, return success directly
+	if len(request.ResourceIDs) == 0 {
+		c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+		return
+	}
+
+	// Begin transaction
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+
+	// Batch delete ResourcePermission records
+	if err := tx.Where("group_id = ? AND resource_id IN ? AND resource_type = ?",
+		groupID, request.ResourceIDs, request.ResourceType).
 		Delete(&model.ResourcePermission{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
@@ -557,6 +746,125 @@ func GetGroupAgents(c *gin.Context) {
 		Count:  total,
 		Agents: agents,
 	}))
+}
+
+// @Summary Get all Resources in a Group
+// @Description Get all resource information associated with a specified Group, sorted in descending order
+// @Tags Group
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Param keyword query string false "Resource name keyword for fuzzy search"
+// @Param offset query int false "Pagination offset" default(0)
+// @Param limit query int false "Pagination limit" default(10)
+// @Param resource_type query string false "Resource type。agent, prompt, ai_link" default(agent)
+// @Success 200 {object} model.CommonResponse{data=GroupResourceListResponse} "Success"
+// @Router /api/groups/{id}/resources [get]
+func GetGroupResources(c *gin.Context) {
+	// Parse group ID
+	groupID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	// Get group information, verify its existence
+	group, err := model.GetGroupByID(int64(groupID))
+	if err != nil {
+		c.JSON(http.StatusOK, model.Success.ToResponse(&GroupResourceListResponse{
+			Count:     0,
+			Resources: make([]interface{}, 0),
+		}))
+		return
+	}
+
+	// Verify enterprise permissions
+	if group.Eid != config.GetEID(c) {
+		c.JSON(http.StatusForbidden, model.NotFound.ToResponse(nil))
+		return
+	}
+
+	// Bind request parameters
+	var req GroupResourceListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Set default pagination parameters
+	if req.Limit <= 0 {
+		req.Limit = 10 // Default 10 items per page
+	}
+	if req.Offset < 0 {
+		req.Offset = 0 // Offset cannot be negative
+	}
+
+	// Set default resource type
+	if req.ResourceType == "" {
+		req.ResourceType = model.ResourceTypeAgent
+	}
+
+	// Validate resource type
+	validTypes := map[string]bool{
+		model.ResourceTypeAgent:   true,
+		model.ResourceTypeAILink:  true,
+		model.ResourceTypePrompt:  true,
+	}
+	
+	if !validTypes[req.ResourceType] {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("invalid resource type")))
+		return
+	}
+
+	// Query all resource permission records associated with this group
+	var permissions []model.ResourcePermission
+	if err := model.DB.Where("group_id = ? AND resource_type = ?",
+		groupID, req.ResourceType).Find(&permissions).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// If there are no associated resources, return an empty array
+	if len(permissions) == 0 {
+		c.JSON(http.StatusOK, model.Success.ToResponse(GroupResourceListResponse{
+			Count:     0,
+			Resources: []interface{}{},
+		}))
+		return
+	}
+
+	// Extract all resource IDs
+	var resourceIDs []int64
+	for _, perm := range permissions {
+		resourceIDs = append(resourceIDs, perm.ResourceID)
+	}
+
+	// Handle different resource types
+	switch req.ResourceType {
+	case model.ResourceTypeAgent:
+		handleAgentResources(c, resourceIDs, req.Keyword, req.Offset, req.Limit)
+		
+	case model.ResourceTypeAILink:
+		handleAILinkResources(c, resourceIDs, req.Keyword, int64(req.Offset), int64(req.Limit), group.Eid)
+		
+	case model.ResourceTypePrompt:
+		handlePromptResources(c, resourceIDs, req.Keyword, int64(req.Offset), int64(req.Limit), group.Eid)
+	}
+}
+
+// GroupResourceListRequest defines the request structure for getting resource list in a group
+type GroupResourceListRequest struct {
+	Keyword      string `form:"keyword"`      // Search keyword for resource name
+	Offset       int    `form:"offset"`       // Pagination offset
+	Limit        int    `form:"limit"`        // Items per page
+	ResourceType string `form:"resource_type"`// Type of resource
+}
+
+// GroupResourceListResponse defines the response structure for getting resource list in a group
+type GroupResourceListResponse struct {
+	Count     int64       `json:"count"`      // Total count of resources
+	Resources interface{} `json:"resources"`  // List of resources
 }
 
 // BatchAddUsersToGroupRequest defines the request structure for batch adding users to a group
@@ -978,4 +1286,98 @@ func RemoveUsersFromGroup(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+// handleAgentResources handles the retrieval of agent resources
+func handleAgentResources(c *gin.Context, agentIDs []int64, keyword string, offset, limit int) {
+	// Build query
+	query := model.DB.Model(&model.Agent{}).Where("agent_id IN ?", agentIDs)
+
+	// If there is a keyword, add fuzzy search condition
+	if keyword != "" {
+		query = query.Where("name LIKE ?", "%"+keyword+"%")
+	}
+
+	// Get total count
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Apply pagination and get data
+	var agents []model.Agent
+	if err := query.Order("sort DESC").Offset(offset).Limit(limit).Find(&agents).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Return result
+	c.JSON(http.StatusOK, model.Success.ToResponse(GroupAgentListResponse{
+		Count:  total,
+		Agents: agents,
+	}))
+}
+
+// handleAILinkResources handles the retrieval of AI link resources
+func handleAILinkResources(c *gin.Context, aiLinkIDs []int64, keyword string, offset, limit int64, eid int64) {
+	// Build query
+	query := model.DB.Model(&model.AILink{}).Where("id IN ? AND eid = ?", aiLinkIDs, eid)
+
+	// If there is a keyword, add fuzzy search condition
+	if keyword != "" {
+		query = query.Where("name LIKE ?", "%"+keyword+"%")
+	}
+
+	// Get total count
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Apply pagination and get data
+	var aiLinks []model.AILink
+	if err := query.Order("sort DESC").Offset(int(offset)).Limit(int(limit)).Find(&aiLinks).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Return result
+	c.JSON(http.StatusOK, model.Success.ToResponse(GroupResourceListResponse{
+		Count:     total,
+		Resources: aiLinks,
+	}))
+}
+
+// handlePromptResources handles the retrieval of prompt resources
+func handlePromptResources(c *gin.Context, promptIDs []int64, keyword string, offset, limit int64, eid int64) {
+	// Build query
+	statusArray := []int{model.PromptStatusNormal, model.PromptStatusDisable}
+	query := model.DB.Model(&model.Prompt{}).Where("prompt_id IN ? AND eid = ? AND status IN ?", promptIDs, eid, statusArray)
+
+	// If there is a keyword, add fuzzy search condition
+	if keyword != "" {
+		query = query.Where("name LIKE ?", "%"+keyword+"%")
+	}
+
+	// Get total count
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Apply pagination and get data
+	var prompts []model.Prompt
+	if err := query.Order("sort DESC").Offset(int(offset)).Limit(int(limit)).Find(&prompts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Return result
+	c.JSON(http.StatusOK, model.Success.ToResponse(GroupResourceListResponse{
+		Count:     total,
+		Resources: prompts,
+	}))
 }

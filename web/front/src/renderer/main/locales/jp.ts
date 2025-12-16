@@ -346,7 +346,8 @@ export default {
   agent: {
     no_data: '管理者がまだエージェントを公開していません',
     dialogue_type: '対話型',
-    applied_type: '応用型'
+    applied_type: '応用型',
+    failed_tip: '認証キーが使用可能かどうか、および残高が充足しているかどうかを確認してください'
   },
 
   prompt: {

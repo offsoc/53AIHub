@@ -11,30 +11,37 @@ import (
 )
 
 type Enterprise struct {
-	Eid              int64             `json:"id" gorm:"primaryKey;autoIncrement"`
-	DisplayName      string            `json:"display_name" gorm:"not null" binding:"required" example:"Enterprise Name"`
-	Logo             string            `json:"logo" gorm:"not null" binding:"required" example:"http://a.com/a.jpg"`
-	Ico              string            `json:"ico" gorm:"type:varchar(100);default:'';not null" example:"http://a.com/favicon.ico"`
-	Keywords         string            `json:"keywords" gorm:"type:text;not null" example:"AI,Hub,Agent"`
-	Copyright        string            `json:"copyright" gorm:"type:varchar(255);default:'';not null" example:"© 2023 Company Name"`
-	Type             string            `json:"type" gorm:"type:varchar(20);default:independent;not null;comment:'站点类型：independent、enterprise、industry'" example:"independent、enterprise、industry"`
-	Banner           string            `json:"banner" gorm:"type:text;not null" example:"http://a.com/banner.jpg"`
-	Language         string            `json:"language" gorm:"type:varchar(10);default:zh-cn;not null" binding:"required" example:"En"`
-	Timezone         string            `json:"timezone" gorm:"type:varchar(20);default:UTC+8;not null" binding:"required" example:"UTC+8"`
-	Domain           string            `json:"domain" gorm:"not null" binding:"required" example:"http://a.com"`
-	Slogan           string            `json:"slogan" gorm:"not null" binding:"required" example:"Slogan Test"`
-	Status           int               `json:"status" gorm:"type:int;default:1;not null" example:"1"`
-	Description      string            `json:"description" gorm:"not null" example:"Description Test"`
-	TemplateType     string            `json:"template_type" gorm:"type:text;not null" example:"default"`
-	LayoutType       string            `json:"layout_type" gorm:"type:varchar(10);default:1;not null" example:"1"`
-	WecomCorpID      string            `json:"wecom_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
-	WecomInstallInfo *WecomInstallInfo `json:"wecom_install_info" gorm:"-"`
+	Eid                 int64                `json:"id" gorm:"primaryKey;autoIncrement"`
+	DisplayName         string               `json:"display_name" gorm:"not null" binding:"required" example:"Enterprise Name"`
+	Logo                string               `json:"logo" gorm:"not null" binding:"required" example:"http://a.com/a.jpg"`
+	Ico                 string               `json:"ico" gorm:"type:varchar(100);default:'';not null" example:"http://a.com/favicon.ico"`
+	Keywords            string               `json:"keywords" gorm:"type:text;not null" example:"AI,Hub,Agent"`
+	Copyright           string               `json:"copyright" gorm:"type:varchar(255);default:'';not null" example:"© 2023 Company Name"`
+	Type                string               `json:"type" gorm:"type:varchar(20);default:independent;not null;comment:'站点类型：independent、enterprise、industry'" example:"independent、enterprise、industry"`
+	Banner              string               `json:"banner" gorm:"type:text;not null" example:"http://a.com/banner.jpg"`
+	Language            string               `json:"language" gorm:"type:varchar(10);default:zh-cn;not null" binding:"required" example:"En"`
+	Timezone            string               `json:"timezone" gorm:"type:varchar(20);default:UTC+8;not null" binding:"required" example:"UTC+8"`
+	Domain              string               `json:"domain" gorm:"not null" binding:"required" example:"http://a.com"`
+	Slogan              string               `json:"slogan" gorm:"not null" binding:"required" example:"Slogan Test"`
+	Status              int                  `json:"status" gorm:"type:int;default:1;not null" example:"1"`
+	Description         string               `json:"description" gorm:"not null" example:"Description Test"`
+	TemplateType        string               `json:"template_type" gorm:"type:text;not null" example:"default"`
+	LayoutType          string               `json:"layout_type" gorm:"type:varchar(10);default:1;not null" example:"1"`
+	WecomCorpID         string               `json:"wecom_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
+	DingtalkCorpID      string               `json:"dingtalk_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
+	WecomInstallInfo    *WecomInstallInfo    `json:"wecom_install_info" gorm:"-"`
+	DingtalkInstallInfo *DingtalkInstallInfo `json:"dingtalk_auth_corp_info" gorm:"-"`
 	BaseModel
 }
 
 type WecomInstallInfo struct {
 	InstallWecomApp int           `json:"install_wecom_app" default:"0"`
 	AuthCorpInfo    *AuthCorpInfo `json:"auth_corp_info"`
+}
+
+type DingtalkInstallInfo struct {
+	InstallDingtalkApp int                   `json:"install_dingtalk_app" default:"0"`
+	AuthCorpInfo       *DingtalkAuthCorpInfo `json:"auth_corp_info"`
 }
 
 const (
@@ -527,4 +534,38 @@ func (e *Enterprise) LoadWecomCorpInfo(suiteID string, loadType int) error {
 	}
 
 	return nil
+}
+
+func (e *Enterprise) LoadDingtalkCorpInfo(suiteID string, loadType int) error {
+	e.DingtalkInstallInfo = &DingtalkInstallInfo{
+		InstallDingtalkApp: 0,
+	}
+	if e.DingtalkCorpID == "" || suiteID == "" {
+		return nil
+	}
+
+	dt, err := GetDingtalkCorp(suiteID, e.DingtalkCorpID)
+	if dt == nil || err != nil || dt.Status == 0  {
+		// 授权以无效，更新为无授权。测试服流程是分开的，这里不能直接处理，不然会在真授权之前被清除掉
+		// e.DingtalkCorpID = ""
+		// _ = e.Update()
+		return nil
+	}
+	e.DingtalkInstallInfo.InstallDingtalkApp = 1
+	if loadType == 1 {
+		e.DingtalkInstallInfo.AuthCorpInfo = dt.GetAuthCorpInfo()
+	}
+	return nil
+}
+
+func GetEnterpriseByDingtalkCorpID(dingtalkCorpID string) (*Enterprise, error) {
+	var enterprise Enterprise
+	err := DB.Where("dingtalk_corp_id = ?", dingtalkCorpID).First(&enterprise).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &enterprise, nil
 }

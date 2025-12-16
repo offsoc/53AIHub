@@ -1,61 +1,4 @@
 /**
- * 索引填充0
- * @param value
- * @param length
- */
-export const indexFillZero = (value: string | number, length: number) => {
-  // length = length < 3 ? 3 : length
-  if (value.length >= length)
-    length = value.length
-
-  return (Array(length).join('0') + value).slice(-length)
-}
-
-/**
- * 转化为千分位
- */
-export const formatNumberToThousands = (num: string | number) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-export const getFileExt = (name = ''): string => {
-  if (name.match(/\.pdf$/))
-    return 'pdf'
-  if (name.match(/\.txt$/))
-    return 'txt'
-  if (name.match(/\.(html|htm)$/))
-    return 'html'
-  if (name.match(/\.xlsx$/))
-    return 'xlsx'
-  if (name.match(/\.docx$/))
-    return 'doc'
-  if (name.match(/\.csv$/))
-    return 'csv'
-  if (name.match(/\.md$/))
-    return 'md'
-  if (name.match(/(\.jpg|\.png|\.bmp|\.tiff)$/))
-    return 'image'
-  return ''
-}
-
-/**
- *
- */
-export const getFileSize = (size: string | number): string => {
-  const bytes = 1024
-  const unitArray = ['B', 'K', 'M', 'G']
-  let unitIdx = 0
-
-  size = Math.max(parseInt(size, 10) || 0, 0)
-
-  while (size >= bytes && unitIdx < unitArray.length - 1) {
-    size /= bytes
-    unitIdx++
-  }
-
-  return +size.toFixed(1) + unitArray[unitIdx]
-}
-/**
  * 判断在对象数据中是否有效值
  * @param { string | number | symbol } key 对象键值
  * @param { object } source 对象数据
@@ -63,17 +6,11 @@ export const getFileSize = (size: string | number): string => {
  */
 export const isValidKeyInObject = (
   key: string | number | symbol | keyof typeof source = '',
-  source: any = {},
+  source: any = {}
 ) => {
-  return !!(
-    key
-    && source
-    && Object.keys(source).length
-    && key in source
-    && source[key]
-  )
+  return !!(key && source && Object.keys(source).length && key in source && source[key])
 }
-export const typeOfData = (source) => {
+export const typeOfData = source => {
   return Object.prototype.toString.call(source).slice(8, -1)
 }
 /**
@@ -85,12 +22,10 @@ export const serialize = (source: any) => {
   return Object.keys(source)
     .filter(key => isValidKeyInObject(key, source))
     .sort()
-    .map((key) => {
+    .map(key => {
       let value: any = source[key]
-      if (typeOfData(value) === 'object')
-        value = JSON.stringify(value)
-      else if (typeOfData(value) === 'array')
-        value = value.join(',')
+      if (typeOfData(value) === 'object') value = JSON.stringify(value)
+      else if (typeOfData(value) === 'array') value = value.join(',')
       return `${key}=${value}`
     })
     .join('&')
@@ -100,8 +35,7 @@ export const serialize = (source: any) => {
  *
  */
 export const joinUrl = (url, paramStr) => {
-  if (typeof url === 'string')
-    return url + (url.includes('?') ? '&' : '?') + paramStr
+  if (typeof url === 'string') return url + (url.includes('?') ? '&' : '?') + paramStr
 
   return ''
 }
@@ -126,14 +60,12 @@ export const deepCopy = (obj, ignore: string[] = []): any => {
     // 如果是数组，则创建一个新数组并递归复制每个元素
     return obj.map(item => deepCopy(item, ignore))
   }
-  if (obj instanceof Date)
-    return obj
+  if (obj instanceof Date) return obj
 
   // 如果是对象，则创建一个新对象并递归复制每个属性
   const newObj = {}
   for (const key in obj) {
-    if (obj.hasOwnProperty(key) && !ignore.includes(key))
-      newObj[key] = deepCopy(obj[key], ignore)
+    if (obj.hasOwnProperty(key) && !ignore.includes(key)) newObj[key] = deepCopy(obj[key], ignore)
   }
 
   return newObj
@@ -147,24 +79,18 @@ export const deepCopy = (obj, ignore: string[] = []): any => {
  */
 export const assign = (target, ...source) => {
   for (const i in source) {
-    if (!source.hasOwnProperty(i))
-      continue
+    if (!source.hasOwnProperty(i)) continue
 
     const object = source[i]
     if (typeof object === 'object' && object !== null) {
-      Object.keys(object).forEach((key) => {
+      Object.keys(object).forEach(key => {
         const value = object[key]
-        if (Array.isArray(value))
-          target[key] = value
-
+        if (Array.isArray(value)) target[key] = value
         else if (typeof value === 'object' && value !== null)
           target[key] = assign({}, target[key] || {}, value)
-
-        else
-          target[key] = value
+        else target[key] = value
       })
-    }
-    else {
+    } else {
       target[i] = object
     }
   }
@@ -178,10 +104,8 @@ export const generateRandomId = (length: number, isvar = false, isUuid = false):
   let result = ''
 
   // 生成第一个字符，如果isvar为true，则从非数字字符中选取
-  if (isvar)
-    result += nonNumericChars[Math.floor(Math.random() * nonNumericChars.length)]
-  else
-    result += characters[Math.floor(Math.random() * characters.length)]
+  if (isvar) result += nonNumericChars[Math.floor(Math.random() * nonNumericChars.length)]
+  else result += characters[Math.floor(Math.random() * characters.length)]
 
   // 生成剩余的字符
   for (let i = 1; i < length; i++)
@@ -195,12 +119,8 @@ export const generateRandomId = (length: number, isvar = false, isUuid = false):
   return result
 }
 
-export function getRandomNumber(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
 export const sleep = (time: number) => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let timer: any
     timer = setTimeout(() => {
       resolve()
@@ -210,21 +130,11 @@ export const sleep = (time: number) => {
 }
 
 /**
- * 格式化语音时间
- */
-export const formatAudioTime = (time: number | string) => {
-  const minutes = Math.floor(time / 60)
-  const seconds = Math.floor(time % 60)
-  return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
-}
-
-/**
  * 删除js地址
  */
 export const removeScript = (src: string) => {
   const node = document.querySelector(`script[src="${src}"]`)
-  if (node)
-    node.remove()
+  if (node) node.remove()
 }
 
 /**
@@ -235,9 +145,8 @@ export const loadScript = (src: string, cache = true) => {
   return new Promise((resolve, reject) => {
     const node = document.querySelector(`script[src="${src}"]`)
     if (node) {
-      if (cache)
-        return resolve()
-      else node.remove()
+      if (cache) return resolve()
+      node.remove()
     }
 
     const element = document.createElement('script')
@@ -254,14 +163,14 @@ export const loadScript = (src: string, cache = true) => {
 }
 
 export const compare = (obj1, obj2, fields?: any[] = []) => {
-  let object1 = {}; let object2 = {}
+  let object1 = {}
+  let object2 = {}
   if (fields && fields.length) {
-    fields.forEach((field) => {
+    fields.forEach(field => {
       object1[field] = obj1[field]
       object2[field] = obj2[field]
     })
-  }
-  else {
+  } else {
     object1 = obj1
     object2 = obj2
   }
@@ -271,181 +180,16 @@ export const compare = (obj1, obj2, fields?: any[] = []) => {
 /**
  * 是不是空对象
  */
-export const isEmptyObject = (obj) => {
+export const isEmptyObject = obj => {
   return Object.keys(obj).length === 0 && obj.constructor === Object
 }
 
-/**
- * 生成递增标题
- */
-export const generateIncreaseTitle = (title, list = [], format = ' (%d)') => {
-  // 过滤数组中title以指定title开头的对象
-  const filteredList = list.filter(value => value.startsWith(title))
-
-  if (filteredList.length === 0)
-    return title
-
-  const reg = new RegExp(format.replace(/(%d)+/, (match) => {
-    return `\\d{${match.length / 2}}`
-  }).replace('(', '\\(').replace(')', '\\)'))
-  // 提取并比较title中的数字部分
-  const maxNumber = filteredList.length
-    ? Math.max(...filteredList.map((value) => {
-      const numberMatch = reg.exec(value)
-      return numberMatch ? parseInt(numberMatch[0].replace(/\D/g, ''), 10) : 0
-    }))
-    : 0
-  const len = format.match(/%d/g).length
-
-  // 返回最大数字
-  return `${title}${format.replace(/(%d)+/g, indexFillZero(maxNumber + 1, len))}`
-}
-
-// 删掉html标签
-export const removeHtmlTags = (html: string): string => {
-  return html.replace(/<[^>]*>/g, '')
-}
-
-/**
- * 获取文章标题
- * @param content 文章内容
- */
-export const getTitle = (content: string, defaultTitle?: string): string => {
-  const div = document.createElement('div')
-  div.innerHTML = content
-  const childNodes = div.childNodes
-
-  // 遍历子元素，找到第一个非空白文本节点或元素节点
-  let firstLine = ''
-  for (let i = 0; i < childNodes.length; i++) {
-    const node = childNodes[i]
-
-    // 排除空白文本节点
-    if (node.nodeType === 3 && node.textContent.trim() === '')
-      continue
-
-    // 找到第一个非空白文本节点或元素节点
-    firstLine = (node.nodeType === 3) ? node.textContent.trim() : node.innerText.trim()
-    if (firstLine)
-	    break
-  }
-
-  return (firstLine || defaultTitle || '').substring(0, 20)
-}
-
-export const getWordCountByHtml = (value: string) => {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(value, 'text/html')
-  const textContent = doc.body.textContent || ''
-  return textContent.length
-}
-
 // 判断是否是function或Promise
-export const isFunction: (_function: any, onlyFunction?: boolean) => boolean = (_function = null, onlyFunction = false) => Boolean(typeof _function === 'function' || (!onlyFunction && _function instanceof Promise))
+export const isFunction: (_function: any, onlyFunction?: boolean) => boolean = (
+  _function = null,
+  onlyFunction = false
+) => Boolean(typeof _function === 'function' || (!onlyFunction && _function instanceof Promise))
 export const isObject = (value: any) => typeof value === 'object' && value !== null
-
-// 递归数组处理
-export const recursion = ({
-  data = [],
-  props = {},
-  handler = null,
-}: {
-  data: any[]
-  props?: {
-    value?: string
-    label?: string
-    children?: string
-    level?: string
-  }
-  handler?: any
-}): void => {
-  props = {
-    value: 'value',
-    label: 'label',
-    children: 'children',
-    level: 'level',
-    ...props,
-  }
-  const findEach = ({ node = {}, chainKeyList = [], level = 1 }: any = {}) => {
-    node[props.level] = level
-    if (isFunction(handler))
-      handler({ data: node, chainKeyList, level })
-    if (node[props.children] && node[props.children].length)
-      node[props.children].forEach((row: any = {}) => findEach({ node: row, chainKeyList: [...chainKeyList, row[props.value]], level: level + 1 }))
-  }
-  data.forEach((node: any = {}) => findEach({ node, chainKeyList: [node[props.value]] }))
-}
-
-export const generateTreeData = ({
-  data = [],
-  props = {},
-}: {
-  data: any[]
-  props?: {
-    value?: string
-    label?: string
-    children?: string
-    pid?: string
-    sort?: string
-  }
-}): any [] => {
-  props = {
-    value: 'value',
-    label: 'label',
-    children: 'children',
-    pid: 'pid',
-    sort: 'sort',
-    ...props,
-  }
-  const result = []
-  data.forEach((item: any = {}) => {
-    data.forEach((row: any = {}) => {
-      if (item[props.pid] && item[props.pid] === row[props.value]) {
-        row[props.children] = [...(row[props.children] || []), item].map((_item, index) => {
-          _item[props.sort] = index
-          return _item
-        })
-      }
-    })
-    if (!item[props.pid]) {
-      item[props.sort] = result.length
-      result.push(item)
-    }
-  })
-  return result
-}
-
-export const generateFlatData = ({
-  data = [],
-  props = {},
-}: {
-  data: any[]
-  props?: {
-    value?: string
-    label?: string
-    children?: string
-    pid?: string
-    sort?: string
-  }
-}): any [] => {
-  props = {
-    value: 'value',
-    label: 'label',
-    children: 'children',
-    pid: 'pid',
-    sort: 'sort',
-    ...props,
-  }
-  const result = []
-  recursion({
-    data,
-    props,
-    handler: ({ data } = {}) => {
-      result.push(data)
-    },
-  })
-  return result
-}
 
 // Promise按顺序逐个执行
 export const runResolvers = (resolvers = [() => Promise.resolve()]) => {
@@ -457,7 +201,7 @@ export const runResolvers = (resolvers = [() => Promise.resolve()]) => {
     resolver = resolver.finally(() =>
       task()
         .then(res => results.push(res))
-        .catch(err => errors.push(err)),
+        .catch(err => errors.push(err))
     )
   }
   return resolver
@@ -467,8 +211,7 @@ export const runResolvers = (resolvers = [() => Promise.resolve()]) => {
 }
 
 export const generateUUID = () => {
-  if (typeof crypto.randomUUID === 'function')
-    return crypto.randomUUID()
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
   const temp_url = URL.createObjectURL(new Blob())
   const uuid = temp_url.toString()
   URL.revokeObjectURL(temp_url)
@@ -479,20 +222,17 @@ const idleQueue = []
 let isRunning = false
 let _runTimer: any
 
-const executeNextTask = (deadline) => {
-  if (isRunning || !idleQueue.length)
-    return
+const executeNextTask = deadline => {
+  if (isRunning || !idleQueue.length) return
 
   isRunning = true
   const task = idleQueue.shift()
 
   try {
     task(deadline)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error executing idle task:', error)
-  }
-  finally {
+  } finally {
     isRunning = false
     requestIdleCallback(executeNextTask)
   }
@@ -503,14 +243,12 @@ const executeNextTask = (deadline) => {
 export const runOnIdle = (callback, options = {}) => {
   if (window.requestIdleCallback) {
     window.requestIdleCallback(executeNextTask, options)
-  }
-  else {
+  } else {
     console.warn('requestIdleCallback is not supported. Falling back to setTimeout.')
-    _runTimer = setTimeout((deadline) => {
+    _runTimer = setTimeout(deadline => {
       try {
         callback(deadline)
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Error executing idle function:', error)
       }
       clearTimeout(_runTimer)
@@ -518,37 +256,54 @@ export const runOnIdle = (callback, options = {}) => {
   }
 }
 
+export const isInternalNetwork = () => {
+  const hostname = window.location.hostname
 
-export const isInternalNetwork = () =>{
-  const hostname = window.location.hostname;
-  
   // 检查localhost和其他本地主机名
   if (['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(hostname)) {
-    return true;
+    return true
   }
-  
+
   // 检查IPv4内网地址范围
   if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
-    const parts = hostname.split('.').map(Number);
-    
+    const parts = hostname.split('.').map(Number)
+
     // 检查地址合法性
-    if (parts.some(p => p < 0 || p > 255)) return false;
-    
+    if (parts.some(p => p < 0 || p > 255)) return false
+
     // 私有地址段判断
-    return (parts[0] === 10) || // 10.0.0.0/8
-           (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // 172.16.0.0/12
-           (parts[0] === 192 && parts[1] === 168) || // 192.168.0.0/16
-           (parts[0] === 169 && parts[1] === 254); // APIPA 169.254.0.0/16
+    return (
+      parts[0] === 10 || // 10.0.0.0/8
+      (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // 172.16.0.0/12
+      (parts[0] === 192 && parts[1] === 168) || // 192.168.0.0/16
+      (parts[0] === 169 && parts[1] === 254)
+    ) // APIPA 169.254.0.0/16
   }
-  
+
   // 检查IPv6内网地址
   if (hostname.startsWith('[') && hostname.endsWith(']')) {
-    const ip = hostname.slice(1, -1);
-    return ip === 'fc00:' || // IPv6私有地址范围 (fc00::/7)
-           ip === 'fd00:' ||
-           ip.startsWith('fe80:'); // 链路本地地址 (fe80::/10)
+    const ip = hostname.slice(1, -1)
+    return (
+      ip === 'fc00:' || // IPv6私有地址范围 (fc00::/7)
+      ip === 'fd00:' ||
+      ip.startsWith('fe80:')
+    ) // 链路本地地址 (fe80::/10)
   }
-  
+
   // 检查常见内网域名后缀
-  return /\.(local|lan|intranet|internal|priv)$/i.test(hostname);
+  return /\.(local|lan|intranet|internal|priv)$/i.test(hostname)
+}
+
+/**
+ * 解析JSON
+ * @param json
+ * @param defaultValue
+ * @returns
+ */
+export const JSONParse = (json: string, defaultValue: any = {}) => {
+  try {
+    return JSON.parse(json)
+  } catch (error) {
+    return defaultValue
+  }
 }

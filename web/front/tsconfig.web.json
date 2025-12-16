@@ -1,4 +1,5 @@
 {
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "src/renderer/main/typings/*.d.ts",
     "src/renderer/main/**/*",

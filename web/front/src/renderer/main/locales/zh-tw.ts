@@ -342,7 +342,8 @@ export default {
   agent: {
     no_data: '管理員還未發布智能體',
     dialogue_type: '對話型',
-    applied_type: '應用型'
+    applied_type: '應用型',
+    failed_tip: '請檢查授權金鑰是否可用以及餘額是否充足'
   },
 
   prompt: {

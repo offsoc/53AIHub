@@ -160,5 +160,11 @@ func migrateDB() error {
 	if err := DB.AutoMigrate(&ShareRecord{}); err != nil {
 		return err
 	}
+	if err := DB.AutoMigrate(
+		&DingtalkSuite{},
+		&DingtalkCorp{},
+		); err != nil {
+		return err
+	}
 	return nil
 }

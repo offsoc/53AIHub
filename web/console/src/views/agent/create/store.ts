@@ -55,6 +55,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         agent_type: 'prompt',
         agent_mode: 'chat',
         provider_id: 0,
+        tencent_bot_id: '',
         coze_workspace_id: '',
         coze_bot_id: '',
         coze_bot_url: '',
@@ -145,6 +146,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
           coze_workspace_id: '',
           coze_bot_id: '',
           coze_bot_url: '',
+          tencent_bot_id: '',
           app_builder_bot_id: '',
           chat53ai_agent_id: '',
           channel_config: {},
@@ -258,6 +260,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
           coze_workspace_id: '',
           coze_bot_id: '',
           app_builder_bot_id: '',
+          tencent_bot_id: '',
           channel_config: {},
           file_parse: {
             enable: false,
@@ -350,6 +353,9 @@ export const useAgentFormStore = defineStore('agent-form-store', {
 
         case AGENT_TYPE.APP_BUILDER:
           data.model = custom_config.app_builder_bot_id || ''
+          break
+        case AGENT_TYPE.TENCENT:
+          data.model = `bot-${custom_config.tencent_bot_id}` || ''
           break
         case AGENT_TYPE['53AI_AGENT']:
           data.model = custom_config.chat53ai_agent_id || ''

@@ -100,9 +100,19 @@ const highlightText = (text: string, keyword: string) => {
 const showList = computed(() => {
   const categories = linksStore.categorys || []
 
-  const links = linksStore.links || []
-
-  let list = categories
+  // const links = linksStore.links || []
+  const links = props.list || []
+  // 首页
+  if (props.onlyAll) {
+    return [
+      {
+        group_id: null,
+        group_name: null,
+        children: links
+      }
+    ]
+  }
+  return categories
     .map((category) => {
       const children = links.filter((link) => {
         const hasAccess = hasPermission(userStore.info.group_ids || [], (link as any).user_group_ids || [])
@@ -120,19 +130,6 @@ const showList = computed(() => {
       return props.onlyAll ? { group_id: null, group_name: null, children: filteredChildren } : { ...category, children: filteredChildren }
     })
     .filter((category) => category.children.length > 0)
-  // 首页最多展示6项
-  if (props.onlyAll) {
-    const children: any = []
-    list.forEach((item: any) => children.push(...item.children))
-    list = [
-      {
-        group_id: null,
-        group_name: null,
-        children: children.slice(0, 6)
-      }
-    ]
-  }
-  return list
 })
 
 const handleCardClick = (item: Link.State) => {

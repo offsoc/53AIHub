@@ -230,10 +230,7 @@ const onSendConfirm = async (question: string, user_files?: any[], type = '') =>
     })
     .catch(err => {
       if (!active_chat_data.answer.content) active_chat_data.answer.content = err.message
-
-      ElMessage.warning(
-        err.message === 'Access token is invalid' ? window.$t('agent_app.check_agent_config_tip') : err.message
-      )
+      ElMessage.warning(window.$t('agent_app.failed_tip'))
     })
     .finally(() => {
       active_chat_data.answer.loading = false

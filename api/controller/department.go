@@ -252,7 +252,7 @@ func GetChildDepartments(c *gin.Context) {
 // @Tags Department
 // @Produce json
 // @Security BearerAuth
-// @Param from query int false "Filter by source (0: backend [default], 1: wecom)" default(0)
+// @Param from query int false "Filter by source (0: backend [default], 1: wecom，2：dingtalk)" default(0)
 // @Success 200 {object} model.CommonResponse{data=DepartmentTreeResponse} "Success"
 // @Failure 500 {object} model.CommonResponse "Internal server error"
 // @Router /api/departments/tree [get]

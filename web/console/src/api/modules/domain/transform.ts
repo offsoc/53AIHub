@@ -9,7 +9,12 @@ import type {
   IndependentDomainConfig,
   IndependentDomainData,
   ExclusiveDomainData,
+  DomainConfig,
+  DomainData,
 } from './types'
+import { useEnv } from '@/hooks/useEnv'
+
+const { isDevEnv } = useEnv()
 
 /**
  * 获取默认的独立域名配置
@@ -84,4 +89,46 @@ export function formatDomain(domain: string): string {
     .replace(/\/$/, '') // 移除末尾斜杠
     .toLowerCase() // 转为小写
     .trim()
+}
+
+// 专属域名数据处理
+export function processExclusiveDomainData(domainData: DomainData) {
+  if (domainData.domain) {
+    let domainName = domainData.domain
+      .trim()
+      .replace(/^https?:\/\//, '')
+      .replace(/\.53ai\.com$/, '')
+
+    if (isDevEnv.value) {
+      domainName = domainName.replace(/\.hub$/, '')
+      return `https://${domainName}${isDevEnv.value ? '.hub' : ''}.53ai.com`
+    }
+  }
+  return ''
+}
+
+// 独立域名数据处理
+export function processIndependentDomainData(domainData: DomainData) {
+  const rawData = { ...domainData }
+
+  // 解析配置
+  let config: DomainConfig = {}
+  if (domainData.config) {
+    try {
+      config =
+        typeof domainData.config === 'string' ? JSON.parse(domainData.config) : domainData.config
+    } catch (error) {
+      console.error('解析独立域名配置失败:', error)
+      config = {}
+    }
+  }
+
+  rawData.config = config
+
+  // 处理域名信息
+  const domainName = (domainData.domain || '').trim().replace(/^https?:\/\//, '')
+  const httpsEnabled = Boolean(Number(config.enable_https))
+
+  if (!domainName) return ''
+  return `http${httpsEnabled ? 's' : ''}://${domainName}`
 }

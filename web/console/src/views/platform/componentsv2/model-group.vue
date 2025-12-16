@@ -37,7 +37,11 @@
               </span>
             </template>
             <ul class="w-full flex flex-col gap-y-5 box-border overflow-auto">
-              <li v-for="model in item.options" :key="model.value" class="w-full box-border flex items-center gap-2">
+              <li
+                v-for="model in item.options"
+                :key="model.value"
+                class="w-full box-border flex items-center gap-2 group"
+              >
                 <img v-if="model.icon" class="flex-none size-5 object-contain" :src="model.icon" />
                 <label class="flex-none text-sm text[#1D1E1F]">{{ model.label }}</label>
                 <ElIcon
@@ -47,7 +51,23 @@
                 >
                   <Setting />
                 </ElIcon>
+                <template v-if="getTestResult(group.data, model)">
+                  <template v-if="getTestResult(group.data, model).loading"></template>
+                  <el-tag v-else-if="getTestResult(group.data, model).success" type="success">
+                    {{ $t('action_test_success') }}
+                  </el-tag>
+                  <el-tag v-else type="danger">{{ $t('action_test_failed') }}</el-tag>
+                </template>
                 <div class="flex-1" />
+                <el-button
+                  :loading="getTestResult(group.data, model)?.loading"
+                  class="group-hover:visible invisible"
+                  type="primary"
+                  link
+                  @click="handleTest(model, group.data)"
+                >
+                  {{ $t('action_test') }}
+                </el-button>
                 <ElIcon
                   class="flex-none cursor-pointer hover:opacity-70"
                   size="16"
@@ -68,22 +88,41 @@
             <template #title>
               <span class="text-[#4F5052] text-sm">
                 {{
-                  $t('platform.model_tip', {
+                  $t('module.platform_model_models_total', {
                     total: group.children.length,
-                    type: group.typeName,
                   })
                 }}
               </span>
             </template>
             <ul class="w-full flex flex-col gap-y-5 box-border overflow-auto">
               <div v-for="channel in group.children" :key="channel.channelId">
-                <li v-for="model in channel.group" :key="model.value" class="w-full box-border flex items-center gap-2">
+                <li
+                  v-for="model in channel.group"
+                  :key="model.value"
+                  class="w-full box-border flex items-center gap-2 group"
+                >
                   <img v-if="model.icon" class="flex-none size-5 object-contain" :src="model.icon" />
                   <label class="flex-none text-sm text[#1D1E1F]">{{ model.label }}</label>
                   <ElIcon class="flex-none cursor-pointer hover:opacity-70" size="14" @click="$emit('edit', channel)">
                     <Setting />
                   </ElIcon>
+                  <template v-if="getTestResult(channel, model)">
+                    <template v-if="getTestResult(channel, model).loading"></template>
+                    <el-tag v-else-if="getTestResult(channel, model).success" type="success">
+                      {{ $t('action_test_success') }}
+                    </el-tag>
+                    <el-tag v-else type="danger">{{ $t('action_test_failed') }}</el-tag>
+                  </template>
                   <div class="flex-1" />
+                  <el-button
+                    :loading="getTestResult(channel, model)?.loading"
+                    class="group-hover:visible invisible"
+                    type="primary"
+                    link
+                    @click="handleTest(model, channel)"
+                  >
+                    {{ $t('action_test') }}
+                  </el-button>
                   <ElIcon
                     class="flex-none cursor-pointer hover:opacity-70"
                     size="16"
@@ -103,7 +142,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Delete, Remove, Setting } from '@element-plus/icons-vue'
+import channelApi from '@/api/modules/channel/index'
 
 interface ChannelGroup {
   label: string
@@ -123,4 +164,36 @@ defineEmits<{
   delete: [data: any, model: any]
   'model-edit': [{ data: any; parentData: any }]
 }>()
+
+const testMap = ref<Record<string, { loading: boolean; success: boolean }>>({})
+
+const getTestKey = (data: any, model: any) => {
+  return `${data.channel_id}-${model.value}`
+}
+
+const getTestResult = (data: any, model: any) => {
+  return testMap.value[getTestKey(data, model)]
+}
+
+const handleTest = (model: any, data: any) => {
+  const key = getTestKey(data, model)
+  testMap.value[key] = { loading: true, success: false }
+  return channelApi
+    .test(data.channel_id, {
+      model: model.value,
+    })
+    .then(res => {
+      testMap.value[key] = { loading: false, success: res ? res.success : false }
+    })
+    .catch(() => {
+      testMap.value[key] = { loading: false, success: false }
+    })
+    .finally(() => {
+      if (testMap.value[key].success) {
+        ElMessage.success(window.$t('platform.model_test_success', { platform: data.name || data.label }))
+      } else {
+        ElMessage.error(window.$t('platform.model_test_failed'))
+      }
+    })
+}
 </script>

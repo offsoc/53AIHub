@@ -61,9 +61,9 @@ export const ERROR_MESSAGES = new Map([
   [RESPONSE_STATUS.UNAUTHORIZED, 'response_status.401'],
   [RESPONSE_STATUS.FORBIDDEN, 'response_status.403'],
   [RESPONSE_STATUS.NOT_FOUND, 'response_status.404'],
-  [RESPONSE_STATUS.SERVICE_UNAVAILABLE, 'response_status.500'],
+  [RESPONSE_STATUS.SERVICE_UNAVAILABLE, 'response_status.503'],
   [RESPONSE_STATUS.BAD_GATEWAY, 'response_status.502'],
-  [RESPONSE_STATUS.INTERNAL_SERVER_ERROR, 'response_status.503'],
+  [RESPONSE_STATUS.INTERNAL_SERVER_ERROR, 'response_status.500'],
   [RESPONSE_STATUS.GATEWAY_TIMEOUT, 'response_status.504'],
 ])
 

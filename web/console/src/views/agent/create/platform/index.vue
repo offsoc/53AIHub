@@ -29,6 +29,7 @@ const components = {
   [AGENT_TYPES.FASTGPT_WORKFLOW]: defineAsyncComponent(() => import('./fastgpt-agent.vue')),
   [AGENT_TYPES.MAXKB_AGENT]: defineAsyncComponent(() => import('./maxkb-agent.vue')),
   [AGENT_TYPES.N8N_WORKFLOW]: defineAsyncComponent(() => import('./n8n.vue')),
+  [AGENT_TYPES.TENCENT]: defineAsyncComponent(() => import('./tencent.vue')),
 }
 
 const viewRef = ref()

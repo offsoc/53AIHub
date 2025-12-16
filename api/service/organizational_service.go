@@ -10,6 +10,7 @@ import (
 )
 
 type SyncOrganizationParams struct {
+	// suite_id dingtalk无效，取系统配置的SuiteID
 	SuiteID string `json:"suite_id"`
 }
 
@@ -59,6 +60,21 @@ func WeComRunSyncOrganization(e *model.Enterprise, params SyncOrganizationParams
 		}
 		if wc == nil {
 			return errors.New("wecom corp not found")
+		}
+		return nil
+	} else {
+		return nil
+	}
+}
+
+func DingtalkRunSyncOrganization(e *model.Enterprise, params SyncOrganizationParams) error {
+	if config.IS_SAAS {
+		dc, err := model.GetDingtalkCorp(params.SuiteID, e.DingtalkCorpID)
+		if err != nil {
+			return err
+		}
+		if dc == nil {
+			return errors.New("dingtalk corp not found")
 		}
 		return nil
 	} else {

@@ -96,11 +96,49 @@ func ConvertResponse(tencentResp *TencentResponse, modelName string) *openai.Tex
 
 // ConvertStreamResponse 将腾讯云流式响应转换为OpenAI格式
 func ConvertStreamResponse(data string, modelName string, previousContent string) *openai.ChatCompletionsStreamResponse {
-	// 解析腾讯云流式数据
+	// 先尝试解析为标准响应
 	var tencentResp TencentResponse
 	if err := json.Unmarshal([]byte(data), &tencentResp); err != nil {
 		logger.SysError("failed to parse tencent stream data: " + err.Error())
 		return nil
+	}
+
+	// 处理错误类型的响应
+	if tencentResp.Type == "error" {
+		// 解析错误响应结构
+		var errorResp struct {
+			Type      string `json:"type"`
+			Payload   struct {
+				Error    struct {
+					Code    uint32 `json:"code"`
+					Message string `json:"message"`
+				} `json:"error"`
+				RequestID string `json:"request_id"`
+				TraceID   string `json:"trace_id"`
+			} `json:"payload"`
+			MessageID string `json:"message_id"`
+		}
+
+		if err := json.Unmarshal([]byte(data), &errorResp); err == nil {
+			// 创建错误响应
+			choice := openai.ChatCompletionsStreamResponseChoice{
+				Index: 0,
+				Delta: model.Message{
+					Content: fmt.Sprintf("Error: %s (code: %d)", errorResp.Payload.Error.Message, errorResp.Payload.Error.Code),
+					Role:    "assistant",
+				},
+			}
+			stopReason := "error"
+			choice.FinishReason = &stopReason
+
+			return &openai.ChatCompletionsStreamResponse{
+				Id:      errorResp.Payload.RequestID,
+				Object:  "chat.completion.chunk",
+				Created: time.Now().Unix(),
+				Model:   modelName,
+				Choices: []openai.ChatCompletionsStreamResponseChoice{choice},
+			}
+		}
 	}
 
 	// 只处理reply类型的响应

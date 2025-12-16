@@ -84,6 +84,8 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       data.is_industry = data.type === WEBSITE_TYPE_INDUSTRY
       data.is_install_wecom = data.wecom_install_info?.install_wecom_app
       data.wecom_info = data.wecom_install_info?.auth_corp_info || {}
+      data.is_install_dingtalk = data.dingtalk_auth_corp_info?.install_dingtalk_app
+      data.dingtalk_info = data.dingtalk_auth_corp_info?.auth_corp_info || {}
 
       return data
     },
@@ -103,14 +105,20 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       return { count, list }
     },
     async apply({
-      data: { contact_name = '', enterprise_name = '', email = '', phone = '' },
+      data: { contact_name = '', enterprise_name = '', domain = '', email = '', phone = '' },
       hideError = false,
     }: {
-      data: { contact_name: string; enterprise_name: string; email: string; phone: string }
+      data: {
+        contact_name: string
+        enterprise_name: string
+        domain: string
+        email: string
+        phone: string
+      }
       hideError: boolean
     }) {
       return api.enterprise.saas_apply({
-        data: { contact_name, enterprise_name, email, phone },
+        data: { contact_name, enterprise_name, domain, email, phone },
         hideError,
       })
     },
@@ -151,7 +159,6 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
         link.rel = 'icon'
         link.href = this.info.ico || getDefaultLogo()
         if (!document.querySelector('link[rel="icon"]')) document.head.appendChild(link)
-
         eventBus.emit('enterprise-info-loaded', this.info)
       } catch (error) {
         console.log(error)

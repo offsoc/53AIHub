@@ -1,5 +1,5 @@
 .el-dialog {
-  padding: 16px 28px;
+  padding: 16px 30px;
 
   &__header {
     padding: var(--el-dialog-padding-primary) 0;
@@ -31,6 +31,7 @@
 
 .el-drawer {
   transition: none !important;
+
   &__header {
     border-bottom: 1px solid #dcdfe6;
     margin-bottom: 0 !important;

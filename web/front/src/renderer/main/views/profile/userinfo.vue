@@ -1,7 +1,7 @@
 <template>
-  <div class="flex items-center justify-between mt-6">
+  <div class="md:flex md:items-center md:justify-between mt-6">
     <h2 class="text-primary font-semibold">{{ $t('profile.info') }}</h2>
-    <div v-if="!userStore.info.is_internal" class="flex items-center gap-1">
+    <div v-if="!userStore.info.is_internal" class="flex justify-end items-center gap-1">
       <div class="h-6 flex-center gap-1 px-2 text-sm text-placeholder whitespace-nowrap" :title="userStore.info.group_name">
         <img
           :src="

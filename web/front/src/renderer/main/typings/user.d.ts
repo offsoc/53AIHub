@@ -58,4 +58,10 @@ declare namespace User {
     old_code?: string
     new_code: string
   }
+
+  interface SsoLoginParam {
+    sign: string
+    timestamp: string
+    username: string
+  }
 }

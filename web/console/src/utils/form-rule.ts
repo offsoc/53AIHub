@@ -63,7 +63,11 @@ export const passwordValidator = ({ rule, value, callback, message } = {}) => {
 export const urlValidator = ({ rule, value, callback, message } = {}) => {
   value = String(value || '').trim()
   if (!value) return callback(new Error(window.$t(message)))
-  if (!/^(https?:\/\/)?([\w.-]+)(\.[\w.-]+)+([\/#\?].*)?$/.test(value))
+  if (
+    !/^(https?:\/\/)?([\w.-]+)(\.[\w.-]+)+(:(0|([1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])))?([\/#\?].*)?$/.test(
+      value
+    )
+  )
     return callback(new Error(window.$t('form_url_validator')))
   callback()
 }

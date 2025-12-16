@@ -136,11 +136,16 @@
             {{ row.backend_agent_type === 0 ? $t('agent_type_chat_v2') : $t('agent_type_completion_v2') }}
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="$t('usage_range')" min-width="140" show-overflow-tooltip>
+        <ElTableColumn :label="$t('usage_range')" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
-            <span :class="!row.user_group_names.length ? 'text-[#999]' : ''">
-              {{ row.user_group_names.join('、') || '--' }}
-            </span>
+            <div :class="!row.user_group_names.length ? 'text-[#999]' : ''">
+              <span class="text-[#999]">{{ $t('register_user.title') }}： </span
+              >{{ row.user_group_names.join('、') || '--' }}
+            </div>
+            <div :class="!row.internal_members.length ? 'text-[#999]' : ''">
+              <span class="text-[#999]">{{ $t('internal_user.title') }}： </span
+              >{{ row.internal_members.join('、') || '--' }}
+            </div>
           </template>
         </ElTableColumn>
         <ElTableColumn :label="$t('action_enable')" min-width="80">
@@ -205,7 +210,7 @@ import eventBus from '@/utils/event-bus'
 import { agentApi } from '@/api/modules/agent'
 import { providerApi } from '@/api/modules/provider'
 import { subscriptionApi } from '@/api/modules/subscription'
-import { groupApi } from '@/api/modules/group'
+import { groupApi, Group } from '@/api/modules/group'
 import { getProvidersByAuth, getProviderByAgentId, AgentType, channels } from '@/constants/platform/config'
 import { AGENT_APP_OPTIONS } from '@/constants/platform/agent'
 import { VERSION_MODULE } from '@/constants/enterprise'
@@ -240,7 +245,7 @@ const table_loading = ref(false)
 const add_visible = ref(false)
 const subscriptionList = ref<SubscriptionItem[]>([])
 const groupList = ref<SubscriptionItem[]>([])
-
+const internalGroupOptions = ref<Record<number, string>>({})
 const auth_providers = ref<ProviderItem[]>([])
 
 const openDialog = () => {
@@ -278,6 +283,13 @@ const loadGroupList = async () => {
   if (!groupList.value.length) groupList.value = await groupApi.list({ params: { group_type: GROUP_TYPE.AGENT } })
 }
 
+const loadInternalGroupList = async () => {
+  const list = await groupApi.list({ params: { group_type: GROUP_TYPE.INTERNAL_USER } })
+  list.forEach((item: Group) => {
+    internalGroupOptions.value[item.group_id] = item.group_name
+  })
+}
+
 const loadAllTotal = async () => {
   const { count = 0 } = await agentApi.list({
     params: {
@@ -313,13 +325,15 @@ const loadListData = async () => {
     table_data.value = agents.map((item: Partial<Agent.State> = {}) => {
       const agent = item as Agent.State
       agent.user_group_ids = agent.user_group_ids || []
-      agent.user_group_names = agent.user_group_ids
-        .map(value => {
-          const subscription = subscriptionList.value.find(row => row.group_id === value)
-          return subscription?.group_name || ''
-        })
-        .filter(group_name => !!group_name)
-
+      agent.user_group_names = []
+      agent.internal_members = []
+      agent.user_group_ids.forEach(value => {
+        const subscription = subscriptionList.value.find(row => row.group_id === value)
+        if (subscription?.group_name) agent.user_group_names.push(subscription.group_name)
+        if (internalGroupOptions.value[value]) {
+          agent.internal_members.push(internalGroupOptions.value[value])
+        }
+      })
       return agent
     })
   } finally {
@@ -436,7 +450,8 @@ const onAddOpened = () => {
   // 抽屉打开时的处理逻辑
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadInternalGroupList()
   refresh()
   loadProviderList()
   eventBus.on('user-login-success', refresh)

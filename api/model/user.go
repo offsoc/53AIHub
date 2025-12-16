@@ -469,12 +469,14 @@ func (u *User) LoadMemberBindings(from int) error {
 func (u *User) LoadUserInfo(from int) {
 	_ = u.LoadDepartments(from)
 	_ = u.LoadMemberBindings(from)
+	_ = u.LoadGroupIds()
 }
 
 func (u *User) GetUserGroupIds() ([]int64, error) {
-	if u.Type == UserTypeRegistered {
+	switch u.Type {
+	case UserTypeRegistered:
 		return []int64{u.GroupId}, nil
-	} else if u.Type == UserTypeInternal {
+	case UserTypeInternal:
 		var groupIDs, userGroupIds []int64
 		err := DB.Model(&ResourcePermission{}).Where("resource_type = ? AND resource_id = ?", ResourceTypeUser, u.UserID).Pluck("group_id", &userGroupIds).Error
 		if err != nil {
@@ -504,7 +506,7 @@ func (u *User) LoadGroupIds() error {
 		return err
 	}
 	u.GroupIds = groupIDs
-	if u.Type == UserTypeInternal {
+	if u.Type == UserTypeInternal && u.GroupId > 0 {
 		u.GroupIds = append(u.GroupIds, u.GroupId)
 	}
 	return nil
@@ -571,4 +573,8 @@ func (user *User) InvalidateAccessToken() error {
 	user.AccessToken = ""
 	// 更新数据库中的用户记录
 	return DB.Model(user).Update("access_token", "").Error
+}
+
+func IsAdmin(role int64) bool {
+	return role >= RoleAdminUser
 }

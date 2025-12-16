@@ -1,7 +1,25 @@
 <template>
-  <div class="iframe-container" ref="containerRef">
-    <iframe ref="iframeRef" :srcdoc="iframeContent" class="w-full border-none"
-      :style="{ height: iframeHeight + 'px' }" @load="handleIframeLoad" sandbox="allow-same-origin" />
+  <div ref="containerRef" class="iframe-container">
+    <iframe
+      v-if="!route?.meta?.softCustom"
+      ref="iframeRef"
+      :srcdoc="iframeContent"
+      class="w-full border-none"
+      :style="{ height: iframeHeight + 'px' }"
+      sandbox="allow-same-origin"
+      @load="handleIframeLoad"
+    />
+    <!-- 软件模式-自定义页 -->
+    <div v-else>
+      <MainHeader sticky>
+        <template #before_suffix>
+          <div class="text-base text-primary font-bold line-clamp-1 max-md:flex-1 max-md:text-center">
+            {{ route?.name?.slice(4) }}
+          </div>
+        </template>
+      </MainHeader>
+      <div class="p-5 overflow-y-auto" style="height: calc(100vh - 70px)" v-html="softContent"></div>
+    </div>
   </div>
 </template>
 
@@ -9,6 +27,7 @@
 import { onMounted, ref, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNavigationStore } from '@/stores/modules/navigation'
+import MainHeader from '@/layout/header.vue'
 
 const navigationStore = useNavigationStore()
 const route = useRoute()
@@ -19,6 +38,7 @@ const iframeHeight = ref(500) // 默认高度
 
 // 构建完整的 HTML 文档结构
 const iframeContent = ref('')
+const softContent = ref('')
 
 let timer = null
 const handleIframeLoad = () => {
@@ -680,32 +700,38 @@ li.list-dot-paddingleft{padding-left:20px}
 }
 
 onMounted(async () => {
-  const path = route.path
-  if (!navigationStore.navigations.length) await navigationStore.fetchNavigations()
-  currentNavigation.value = navigationStore.navigations.find(item => item.menu_path === path) || {}
+  const { path } = route
+  // if (!navigationStore.navigations.length) await navigationStore.fetchNavigations()
+  currentNavigation.value = navigationStore.navigations.find((item) => item.menu_path === path || item.jump_path === path) || {}
   const contentData = currentNavigation.value.content || {}
   const rawHtmlContent = contentData.html_content || ''
 
-  // 构建完整的 iframe 内容
-  iframeContent.value = buildIframeContent(rawHtmlContent)
+  softContent.value = rawHtmlContent
 
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-  timer = setInterval(() => {
-    // 调整 iframe 高度以适应内容
-    const iframeDocument = iframeRef.value.contentDocument
-    if (iframeDocument) {
-      const height = iframeDocument.documentElement.scrollHeight
-      iframeHeight.value = height
+  if (!route?.meta?.softCustom) {
+    // 构建完整的 iframe 内容
+    iframeContent.value = buildIframeContent(rawHtmlContent)
+
+    if (timer) {
+      clearInterval(timer)
+      timer = null
     }
-  }, 1000)
+    timer = setInterval(() => {
+      // 调整 iframe 高度以适应内容
+      const iframeDocument = iframeRef.value.contentDocument
+      if (iframeDocument) {
+        const height = iframeDocument.documentElement.scrollHeight
+        iframeHeight.value = height
+      }
+    }, 1000)
+  }
 })
 
 onUnmounted(() => {
-  clearInterval(timer)
-  timer = null
+  if (!route?.meta?.softCustom) {
+    clearInterval(timer)
+    timer = null
+  }
 })
 </script>
 

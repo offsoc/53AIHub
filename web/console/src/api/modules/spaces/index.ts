@@ -15,15 +15,15 @@ export const spacesApi = {
     return service.post('/api/spaces', data).catch(handleError)
   },
 
-  update(space_id: number, data: SpaceCreateRequest) {
+  update(space_id: SpaceItem['id'], data: SpaceCreateRequest) {
     return service.put(`/api/spaces/${space_id}`, data).catch(handleError)
   },
 
-  delete(space_id: number) {
+  delete(space_id: SpaceItem['id']) {
     return service.delete(`/api/spaces/${space_id}`).catch(handleError)
   },
 
-  detail(space_id: number): Promise<SpaceItem> {
+  detail(space_id: SpaceItem['id']): Promise<SpaceItem> {
     return service
       .get(`/api/spaces/${space_id}`)
       .then(res => res.data)

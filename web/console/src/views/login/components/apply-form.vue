@@ -52,7 +52,7 @@
         </template>
         <ElInput
           v-model="form.website_name"
-          style="--el-input-bg-color: #f1f2f3; --el-input-border-color: transparent; --el-input-height: 44px"
+          style="--el-input-height: 44px"
           size="large"
           :placeholder="$t(`login.website_name_placeholder`)"
           clearable
@@ -68,7 +68,7 @@
         </template>
         <ElInput
           v-model="form.contact_name"
-          style="--el-input-bg-color: #f1f2f3; --el-input-border-color: transparent; --el-input-height: 44px"
+          style="--el-input-height: 44px"
           size="large"
           :placeholder="$t(`login.contact_name_placeholder`)"
           clearable
@@ -145,6 +145,9 @@ onMounted(async () => {
     if (list.length > 0) active_step.value = 1
   }
   eventBus.on('language-change', onLanguageChange)
+  if (localStorage.getItem('login_type')) {
+    localStorage.removeItem('login_type')
+  }
 })
 onUnmounted(() => {
   eventBus.off('language-change', onLanguageChange)

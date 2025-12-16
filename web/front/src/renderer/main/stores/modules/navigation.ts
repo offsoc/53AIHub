@@ -29,6 +29,8 @@ const getFormatData = (data: Navigation.State) => {
       '/toolkit': 4
     }
     data.icon = `${IMG_HOST}/navigation/icon${pathIconMap[data.jump_path]}.png`
+  } else if (data.icon?.indexOf('default') !== -1) {
+    data.icon = `${IMG_HOST}/navigation/icon5.png`
   }
   return data
 }

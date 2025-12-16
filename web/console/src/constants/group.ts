@@ -3,7 +3,15 @@ export const GROUP_TYPE = {
   AI_LINK: 2,
   AGENT: 3,
   INTERNAL_USER: 4,
-  PROMPT: 5
+  PROMPT: 5,
 } as const
 
 export type GroupType = (typeof GROUP_TYPE)[keyof typeof GROUP_TYPE]
+
+export const RESOURCE_TYPE = {
+  AGENT: 'agent',
+  PROMPT: 'prompt',
+  AI_LINK: 'ai_link',
+} as const
+
+export type ResourceType = (typeof RESOURCE_TYPE)[keyof typeof RESOURCE_TYPE]

@@ -19,6 +19,7 @@ const AGENT_TYPE = {
   FASTGPT_WORKFLOW: 'fastgpt_workflow',
   MAXKB_AGENT: 'maxkb_agent',
   N8N_WORKFLOW: 'n8n_workflow',
+  TENCENT: 'tencent',
 } as const
 
 const BACKEND_AGENT_TYPE = {
@@ -38,7 +39,7 @@ const MODEL_USE_TYPE = {
   EMBEDDING: '2',
   // 重排序
   RERANKER: '3',
-}
+} as const
 
 // 统一的平台配置
 const PLATFORM_CONFIG = {
@@ -250,6 +251,21 @@ const PLATFORM_CONFIG = {
       },
     ],
   },
+  tencent: {
+    providerValue: 6,
+    channelValue: 1011,
+    category: 'cloud_computing_platform',
+    auth: true,
+    label: window.$t('provider_platform.tencent'),
+    agents: [
+      {
+        id: AGENT_TYPE.TENCENT,
+        name: AGENT_TYPE.TENCENT,
+        mode: AGENT_MODES.CHAT,
+        label: window.$t('agent_app.tencent'),
+      },
+    ],
+  },
 } as const
 
 // 统一的大模型配置
@@ -331,7 +347,7 @@ export type ProviderValue = (typeof PLATFORM_CONFIG)[keyof typeof PLATFORM_CONFI
 
 export type ModelType = keyof typeof MODEL_CONFIG
 export type ModelValue = (typeof MODEL_CONFIG)[keyof typeof MODEL_CONFIG]['channelType']
-export type ModelUseType = keyof typeof MODEL_USE_TYPE
+export type ModelUseType = (typeof MODEL_USE_TYPE)[keyof typeof MODEL_USE_TYPE]
 
 export type AgentMode = (typeof AGENT_MODES)[keyof typeof AGENT_MODES]
 export type AgentCategory = (typeof AGENT_CATEGORIES)[keyof typeof AGENT_CATEGORIES]

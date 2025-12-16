@@ -1,6 +1,6 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
-import type { GroupType } from '@/constants/group'
+import { GroupType, ResourceType, RESOURCE_TYPE } from '@/constants/group'
 
 export interface Group {
   group_id: number
@@ -11,12 +11,17 @@ export interface Group {
 export const DEFAULT_GROUP_DATA = {
   group_id: -Date.now(),
   group_name: '',
-  sort: 0
+  sort: 0,
+}
+
+interface RequestType {
+  resource_ids: number[]
+  resource_type: ResourceType
 }
 
 export const groupApi = {
   async list({
-    params = {}
+    params = {},
   }: {
     params: {
       group_type: GroupType
@@ -31,7 +36,7 @@ export const groupApi = {
     return data
   },
   async save({
-    data: { group_type, groups }
+    data: { group_type, groups },
   }: {
     data: { group_type: GroupType; groups: Group[] }
   }) {
@@ -81,18 +86,18 @@ export const groupApi = {
         item = {
           ...item,
           ...item.user,
-          ...item.department
+          ...item.department,
         }
         item.departments = item.departments || []
-        item.dept_id_list = item.departments.map((item) => +item.did).filter((did) => did)
-        item.dept_names = item.departments.map((item) => item.name).join(',')
+        item.dept_id_list = item.departments.map(item => +item.did).filter(did => did)
+        item.dept_names = item.departments.map(item => item.name).join(',')
         if (item.resource_type === 'department') {
           item.dept_id_list = [+item.department.did]
           item.dept_names = item.department.name || ''
         }
 
         return item
-      })
+      }),
     }
   },
 
@@ -127,7 +132,7 @@ export const groupApi = {
         item.value = +item.agent_id || 0
         item.label = item.name || ''
         return item
-      })
+      }),
     }
   },
   async batch_add_agent(data: { group_id: number; agent_ids: number[] }) {
@@ -140,7 +145,45 @@ export const groupApi = {
     const group_id = +data.group_id || 0
     delete data.group_id
     return service.delete(`/api/groups/${group_id}/agents`, { data }).catch(handleError)
-  }
+  },
+  async resource_list(data: {
+    id: number
+    params: {
+      keyword?: string
+      offset?: number
+      limit?: number
+      resource_type?: ResourceType
+    }
+  }) {
+    const id = +data.id || 0
+    const { data: resultData = {} } = await service
+      .get(`/api/groups/${id}/resources`, { params: data.params })
+      .catch(handleError)
+    const list =
+      data.params.resource_type === RESOURCE_TYPE.AGENT ? resultData.agents : resultData.resources
+    return {
+      total: +resultData.count || 0,
+      list: (list || []).map((item = {}) => {
+        const value =
+          data.params.resource_type === RESOURCE_TYPE.AGENT
+            ? +item.agent_id
+            : data.params.resource_type === RESOURCE_TYPE.PROMPT
+              ? +item.prompt_id
+              : +item.id
+        item.value = value || 0
+        item.label = item.name || ''
+        return item
+      }),
+    }
+  },
+  async batch_add_resource(data: { id: number; request: RequestType }) {
+    const id = +data.id || 0
+    return service.post(`/api/groups/${id}/resources`, data.request).catch(handleError)
+  },
+  async remove_resource(data: { id: number; request: RequestType }) {
+    const id = +data.id || 0
+    return service.delete(`/api/groups/${id}/resources`, { data: data.request }).catch(handleError)
+  },
 }
 
 export default groupApi

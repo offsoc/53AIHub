@@ -16,9 +16,6 @@ export const conversation = {
   },
   messasges(id: number, params: { keyword?: string, offset?: number, limit?: number } = {}) {
     return service.get(`/api/conversations/${id}/messages`, { params }).catch(handleError)
-  },
-  detail(id: number) {
-    return service.get(`/api/conversations/${id}`).catch(handleError)
   }
 }
 export default conversation

@@ -16,7 +16,11 @@ export const INTERNAL_USER_STATUS_ALL = -1
 export const INTERNAL_USER_STATUS_UNDEFINED = 0
 export const INTERNAL_USER_STATUS_ENABLED = 1
 export const INTERNAL_USER_STATUS_DISABLED = 2
-export type InternalUserStatus = typeof INTERNAL_USER_STATUS_ALL | typeof INTERNAL_USER_STATUS_UNDEFINED | typeof INTERNAL_USER_STATUS_ENABLED | typeof INTERNAL_USER_STATUS_DISABLED
+export type InternalUserStatus =
+  | typeof INTERNAL_USER_STATUS_ALL
+  | typeof INTERNAL_USER_STATUS_UNDEFINED
+  | typeof INTERNAL_USER_STATUS_ENABLED
+  | typeof INTERNAL_USER_STATUS_DISABLED
 export const INTERNAL_USER_STATUS_LABEL_MAP = new Map<InternalUserStatus, string>([
   [INTERNAL_USER_STATUS_ALL, 'internal_user.status.all'],
   [INTERNAL_USER_STATUS_UNDEFINED, 'internal_user.status.undefined'],
@@ -28,10 +32,8 @@ export function getFormatUserData(data = {}) {
   data.expired_time = +data.expired_time || 0
   data.created_time = +data.created_time || 0
   data.add_admin_time = +data.add_admin_time || 0
-  if (data.expired_time)
-    data.expired_time = getSimpleDateFormatString({ date: data.expired_time })
-  if (data.created_time)
-    data.register_time = getSimpleDateFormatString({ date: data.created_time })
+  if (data.expired_time) data.expired_time = getSimpleDateFormatString({ date: data.expired_time })
+  if (data.created_time) data.register_time = getSimpleDateFormatString({ date: data.created_time })
   if (data.add_admin_time)
     data.add_admin_time = getSimpleDateFormatString({ date: data.add_admin_time })
 
@@ -54,12 +56,10 @@ export const userApi = {
   batch_remove_admin(data: { user_ids: number[] }) {
     return service.delete('/api/users/batch/admin', { data }).catch(handleError)
   },
-  async fetch_admin_user(params: {
-    keyword?: string
-    offset?: number
-    limit?: number
-  }) {
-    const { data: { count = 0, users = [] } } = await service.get('/api/users/admin', { params }).catch(handleError)
+  async fetch_admin_user(params: { keyword?: string; offset?: number; limit?: number }) {
+    const {
+      data: { count = 0, users = [] },
+    } = await service.get('/api/users/admin', { params }).catch(handleError)
     return {
       total: count,
       list: users.map(item => getFormatUserData(item)),
@@ -67,17 +67,17 @@ export const userApi = {
   },
   async fetch_internal_user(params: {
     keyword?: string
-    from?: number
+    from?: EnterpriseSyncFrom
     status?: InternalUserStatus
     not_bind?: 0 | 1
     did?: number
     offset?: number
     limit?: number
-
   }) {
-    if (typeof params.status === 'undefined')
-      params.status = INTERNAL_USER_STATUS_ALL
-    const { data: { count = 0, users = [] } } = await service.get('/api/users/internal', { params }).catch(handleError)
+    if (typeof params.status === 'undefined') params.status = INTERNAL_USER_STATUS_ALL
+    const {
+      data: { count = 0, users = [] },
+    } = await service.get('/api/users/internal', { params }).catch(handleError)
     return {
       total: count,
       list: users.map(item => getFormatUserData(item)),
@@ -92,9 +92,8 @@ export const userApi = {
     }[]
   }) {
     if (data.users && data.users.length) {
-      data.users = data.users.map((item) => {
-        if (!Array.isArray(item.did))
-          item.dids = [item.did || 0]
+      data.users = data.users.map(item => {
+        if (!Array.isArray(item.did)) item.dids = [item.did || 0]
         return item
       })
     }
@@ -117,27 +116,30 @@ export const userApi = {
   },
   register_to_internal(data: {
     user_departments: {
-      did: number []
+      did: number[]
       user_id: number
     }[]
   }) {
     if (data.user_departments && data.user_departments.length) {
-      data.user_departments = data.user_departments.map((item) => {
-        if (!Array.isArray(item.did))
-          item.dids = [item.did || 0]
+      data.user_departments = data.user_departments.map(item => {
+        if (!Array.isArray(item.did)) item.dids = [item.did || 0]
         return item
       })
     }
     return service.put('/api/users/register/to/internal', data).catch(handleError)
   },
-  update_user_status(data: {
-    user_id: number
-    status: InternalUserStatus
-  }) {
+  update_user_status(data: { user_id: number; status: InternalUserStatus }) {
     const { user_id, status } = data
     return service.patch(`/api/users/${user_id}/status`, { status }).catch(handleError)
   },
-  organization(params: { did: number; status: number; from: EnterpriseSyncFrom; keyword: string; offset: number; limit: number }) {
+  organization(params: {
+    did: number
+    status: number
+    from: EnterpriseSyncFrom
+    keyword: string
+    offset: number
+    limit: number
+  }) {
     return service.get('/api/users/organization', { params }).catch(handleError)
   },
 }

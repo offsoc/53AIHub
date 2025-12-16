@@ -10,8 +10,9 @@ import (
 
 // Department source constants
 const (
-	DepartmentFromBackend = 0 // Created from Backend
-	DepartmentFromWecom   = 1 // Imported from WecomChat
+	DepartmentFromBackend   = 0 // Created from Backend
+	DepartmentFromWecom     = 1 // Imported from WecomChat
+	DepartmentFromDingtalk  = 2 // Imported from DingTalk
 )
 
 // Department status constants

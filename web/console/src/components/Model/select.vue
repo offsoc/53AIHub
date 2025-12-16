@@ -1,5 +1,12 @@
 <template>
-  <SelectPlus v-model="value" size="large" :use-i18n="false" :options="options" @change="onModelChange">
+  <SelectPlus
+    v-model="value"
+    size="large"
+    :use-i18n="false"
+    :options="options"
+    :clearable="clearable"
+    @change="onModelChange"
+  >
     <template #item_after="{ data }">
       <el-tooltip v-if="(data as any).vision" :content="$t('support_image')" placement="top">
         <div class="flex-center inline-flex align-middle ml-1 w-4 h-4 bg-[#FDF8EB] rounded-sm">
@@ -37,6 +44,7 @@ const props = withDefaults(
   defineProps<{
     modelValue: string
     type?: ModelUseType
+    clearable?: boolean
   }>(),
   {
     modelValue: '',

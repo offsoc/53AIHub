@@ -351,7 +351,9 @@ export default {
   agent: {
     no_data: 'No data',
     dialogue_type: 'Conversational',
-    applied_type: 'Applied'
+    applied_type: 'Applied',
+    failed_tip:
+      'Please check if the authorization key is available and if the balance is sufficient.'
   },
 
   prompt: {

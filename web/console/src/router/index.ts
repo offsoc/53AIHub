@@ -197,7 +197,31 @@ const routes: RouteRecordRaw[] = [
         name: 'Space',
         component: () => import('@/views/space/index.vue'),
         meta: {
-          title: 'module.space',
+          title: '团队空间',
+        },
+      },
+      {
+        path: '/search',
+        name: 'Search',
+        component: () => import('@/views/search/index.vue'),
+        meta: {
+          title: 'AI搜索设置',
+        },
+      },
+      {
+        path: '/parse',
+        name: 'Parse',
+        component: () => import('@/views/parse/index.vue'),
+        meta: {
+          title: '文档解析',
+        },
+      },
+      {
+        path: '/viewer',
+        name: 'Viewer',
+        component: () => import('@/views/viewer/index.vue'),
+        meta: {
+          title: '文档编辑',
         },
       },
       // #endif

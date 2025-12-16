@@ -138,6 +138,7 @@ func (a *WorkflowAdaptor) processWorkflowParameters(parameters map[string]interf
 }
 
 // processParameterValue 递归处理参数值，支持字符串、数组、对象
+// https://www.coze.cn/open/docs/developer_guides/workflow_run
 func (a *WorkflowAdaptor) processParameterValue(value interface{}) (interface{}, error) {
 	switch v := value.(type) {
 	case string:
@@ -231,12 +232,12 @@ func (a *WorkflowAdaptor) processFileIDString(value string) (interface{}, error)
 	var fileObject map[string]interface{}
 	if strings.HasPrefix(uploadFile.MimeType, "image/") {
 		fileObject = map[string]interface{}{
-			"type":    "image",
+			// "type":    "image",
 			"file_id": fileMapping.ChannelFileID,
 		}
 	} else {
 		fileObject = map[string]interface{}{
-			"type":    "file",
+			// "type":    "file",
 			"file_id": fileMapping.ChannelFileID,
 		}
 	}
@@ -249,12 +250,12 @@ func (a *WorkflowAdaptor) processFileIDString(value string) (interface{}, error)
 	}
 
 	// 返回包含 JSON 字符串的数组格式
-	fileArray := []string{string(fileObjectJSON)}
+	// fileArray := []string{string(fileObjectJSON)}
 
-	logger.SysLogf("工作流文件处理成功 - 原始ID: %d, 渠道文件ID: %s, 类型: %s, 数组格式: %v",
-		fileID, fileMapping.ChannelFileID, uploadFile.MimeType, fileArray)
+	// logger.SysLogf("工作流文件处理成功 - 原始ID: %d, 渠道文件ID: %s, 类型: %s, 数组格式: %v",
+	// 	fileID, fileMapping.ChannelFileID, uploadFile.MimeType, fileArray)
 
-	return fileArray, nil
+	return string(fileObjectJSON), nil
 }
 
 func (a *WorkflowAdaptor) ConvertImageRequest(request *model.ImageRequest) (any, error) {

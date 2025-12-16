@@ -75,6 +75,30 @@ export const useUserStore = defineStore('user-store', {
       eventBus.emit(EVENT_NAMES.LOGIN_SUCCESS)
       return res.data
     },
+
+    // 单点登录
+    async sso_login() {
+      const params: User.SsoLoginParam = {
+        sign: '',
+        timestamp: '',
+        username: ''
+      }
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.forEach((value, key) => {
+        params[key] = value
+      })
+      const res = await userApi.ssoLogin({
+        sign: params.sign,
+        timestamp: params.timestamp,
+        username: params.username
+      })
+      if (res.code === 0) {
+        this.setAccessToken(res.data.access_token)
+        await this.getUserInfo()
+        eventBus.emit(EVENT_NAMES.LOGIN_SUCCESS)
+      }
+    },
+
     async bind_wechat(data: User.BindWechatForm) {
       const res = await userApi.bind_wechat(data)
       const isCreated = Boolean(res.data.access_token && data.mobile)

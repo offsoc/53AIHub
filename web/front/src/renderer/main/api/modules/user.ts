@@ -62,6 +62,9 @@ const userApi = {
   },
   update_default_subscription(user_id: number) {
     return service.put(`/api/users/${user_id}/default_subscription`).catch(handleError)
+  },
+  ssoLogin(data: User.SsoLoginParam) {
+    return service.post(`/api/auth/sso_login`, data).catch(handleError)
   }
 }
 

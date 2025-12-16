@@ -14,6 +14,9 @@ const filters = {
       format,
     })
   },
+  formatSecret(secret: string) {
+    return `${secret.slice(0, 4)}****${secret.slice(-4)}`
+  },
 } as const
 
 // 定义过滤器类型
