@@ -19,7 +19,7 @@ const detailData = computed(() => {
 })
 
 onMounted(() => {
-  navigationStore.fetchNavigations()
+  // navigationStore.fetchNavigations()
 })
 </script>
 
@@ -28,14 +28,12 @@ onMounted(() => {
     <section class="w-11/12 lg:w-4/5 py-6 px-4 mx-auto box-border">
       <div class="relative w-full flex items-center gap-4 box-border">
         <ElBreadcrumb class="flex-1 w-0" :separatorIcon="ArrowRight">
-          <ElBreadcrumbItem v-if="navigationStore.homeNavigation.menu_path"
-            :to="navigationStore.homeNavigation.menu_path" replace>
+          <ElBreadcrumbItem v-if="navigationStore.homeNavigation.menu_path" :to="navigationStore.homeNavigation.menu_path" replace>
             <span class="text-regular font-normal hover-text-theme">
               {{ navigationStore.homeNavigation.name }}
             </span>
           </ElBreadcrumbItem>
-          <ElBreadcrumbItem v-if="navigationStore.promptNavigation.menu_path"
-            :to="navigationStore.promptNavigation.menu_path" replace>
+          <ElBreadcrumbItem v-if="navigationStore.promptNavigation.menu_path" :to="navigationStore.promptNavigation.menu_path" replace>
             <span class="text-regular font-normal hover-text-theme">
               {{ navigationStore.promptNavigation.name }}
             </span>
@@ -51,7 +49,16 @@ onMounted(() => {
           {{ $t('chat.usage_guide') }}
         </ElButton>
       </div>
-      <PromptDetailView ref="promptDetailRef" mainClass="!px-0 !max-w-none" guideClass="!max-w-none" hideMenuHeader hideFooter showRecommend hideContentTitle useCaseFixed />
+      <PromptDetailView
+        ref="promptDetailRef"
+        mainClass="!px-0 !max-w-none"
+        guideClass="!max-w-none"
+        hideMenuHeader
+        hideFooter
+        showRecommend
+        hideContentTitle
+        useCaseFixed
+      />
     </section>
   </div>
 </template>

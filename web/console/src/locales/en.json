@@ -25,6 +25,8 @@
     "apply_already_submitted": "You have already submitted an application, please do not submit it again"
   },
   "module": {
+    "parse": "Content Cleaning",
+    "viewer": "Document View",
     "agent_type_prompt": "Create via Prompt",
     "agent_type_53ai_agent": "53AI Intelligent Agent",
     "agent_type_53ai_workflow": "53AI Application Intelligence",
@@ -44,8 +46,10 @@
     "aibox": "AI Toolbox",
     "bot": "Intelligent Agent",
     "prompt": "Prompts",
-    "library": "All Knowledge",
-    "chunk_setting": "Chunk",
+    "library": "Knowledge Settings",
+    "search_section": "AI Question Assistant",
+    "search": "AI Question",
+    "chunk_setting": "Chunk Template",
     "model_setting": "Model Settings",
     "system": "System Management",
     "dialogue_digital_employee": "AI Employee",
@@ -74,6 +78,7 @@
     "operation_order_user_tip": "You can directly input the user nickname to select, if you select multiple users, it will create a separate order for each user",
     "operation_visit": "Visit Data",
     "site_config": "Site Config",
+    "system_config": "System Config",
     "website_info": "Site Info",
     "website_info_logo": "Logo",
     "website_info_logo_tip": "Please upload a square logo (recommended size: 512×512px) in 1:1 ratio, supported formats: PNG/JPG, file size must be less than 2MB",
@@ -112,6 +117,10 @@
     "platform_auth_coze_confirm": "Confirm you have saved in Coze",
     "platform_auth_url": "URL",
     "platform_auth_secret": "Secret",
+    "platform_auth_secret_id": "SecretId",
+    "platform_auth_secret_id_placeholder": "Please enter SecretId",
+    "platform_auth_secret_key": "SecretKey",
+    "platform_auth_secret_key_placeholder": "Please enter SecretKey",
     "platform_search_online": "Search online",
     "platform_search_online_desc": "Search the web content, and summarize the results.",
     "platform_search_online_delete_confirm": "Are you sure you want to delete this search online tool?",
@@ -471,6 +480,8 @@
     "fastgpt_agent": "FastGPT",
     "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
+    "n8n_workflow": "n8n",
+    "tencent": "Tencent Cloud",
     "check_agent_config_tip": "Please check if the agent configuration is correct"
   },
   "provider_platform": {
@@ -492,13 +503,17 @@
     "volcengine": "Volcengine",
     "yuanqi": "Tencent Yuanqi",
     "fastgpt": "FastGPT",
-    "maxkb": "MaxKB"
+    "maxkb": "MaxKB",
+    "n8n": "n8n",
+    "qianfan": "Qianfan",
+    "tencent": "Tencent Cloud Intelligent Agent Development Platform"
   },
   "register_user": {
     "title": "Register User"
   },
   "internal_user": {
     "title": "Internal User",
+    "alias": "Contact",
     "account": {
       "title": "Account",
       "search_placeholder": "Member Name/Phone Number/Email",
@@ -629,6 +644,11 @@
       "access_title": "Access AD/LDAP",
       "access_desc": "Bind AD/LDAP, you can import AD/LDAP member directory, realize AD/LDAP account single sign-on 53Hub"
     },
+    "api_access": {
+      "title": "API Access",
+      "access_title": "API Access",
+      "access_desc": "Single sign-on is achieved through API authentication. Users can log in directly by clicking the link without manually entering their account and password"
+    },
     "feishu": {
       "title": "Feishu",
       "abbr_title": "Feishu",
@@ -652,7 +672,18 @@
     "unbind_member": "Unbind Member",
     "bind_member_tip": "Are you sure you want to bind this member to the current user?",
     "unbind_member_tip": "Are you sure you want to unbind this member?",
-    "auth_completed_tip": "Confirm you have completed the application binding, confirm to refresh the page"
+    "auth_completed_tip": "Confirm you have completed the application binding, confirm to refresh the page",
+    "access_setting": "Access Settings",
+    "access_method": "Access Method: ",
+    "method_tip1": "1. Single sign-on is achieved by completing user identity authentication through a single jump",
+    "method_tip2": "2. The link format is: ",
+    "method_tip3": "3. Parameter description: ",
+    "username_tip": "a mobile phone or an email address",
+    "timestamp_tip": "Current timestamp (This link will expire in 10 minutes)",
+    "sign_tip": "It is an md5 value of Sercet concatenated from timestamp={timestamp}&username={username}",
+    "enable_encryption": "Enable Encryption: ",
+    "API_documentation": "API Documentation",
+    "save_success": "Saved Successfully"
   },
   "action_visit": "Visit",
   "action_test": "Test",
@@ -868,6 +899,7 @@
   "permission_setting": "Permission Setting",
   "expand_setting": "Expand Setting",
   "base_setting": "Welcome",
+  "over_response": "Over Response",
   "visible_range": "Visible Range",
   "dialogue_frequency": "Dialogue Frequency",
   "dialogue_total": "Dialogue Total",
@@ -951,6 +983,7 @@
   "53ai_api_screet": "Secret Key",
   "upload_pem_file_tip": "Please upload pem file",
   "usage_range": "Usage Range",
+  "internal_member_group": "Internal Member Grouping",
   "dify_agent_get_tip": "Go to Dify and login ({url}) \nStep 1: Select the intelligent agent to be accessed, click \"Access API\" \nStep 2: Copy \"API Server\" and \"API Secret Key\" in the upper right corner, and fill in the form below.",
   "53ai_agent_get_tip": "Go to 53AI and login ({url}) \n Step 1: Select the intelligent agent to be accessed, click \"Access API\" \n Step 2: Copy \"API Endpoint\" 、 \"Bot-Id\" 和 \"SECRET_KEY\", and fill in the form below.",
   "bailian_agent_get_tip": "Go to Alibaba Bailian and login ({ url })\n Step 1: Login Alibaba Bailian, select an application (or create one), click \"Publish\", get API-KEY, copy it below\n Step 2: Find the assistant/ part in the current URL of Alibaba Bailian, copy and paste it below\n Help: How to get APP ID and Workspace ID ({ help_url })",
@@ -1148,11 +1181,13 @@
     "array_text": "Array Text",
     "array_image": "Array Image",
     "array_audio": "Array Audio",
-    "array_video": "Array Video"
+    "array_video": "Array Video",
+    "array_file": "Array File"
   },
   "platform": {
     "model_tip": "{total} { type } models",
     "model_test_success": "Test successful, \"{platform}\" is currently available",
-    "model_test_failed": "Test failed, \"{platform}\" is currently unavailable"
+    "model_test_failed": "Test failed, \"{platform}\" is currently unavailable",
+    "failed_tip": "Test failed: Please check if the authorization key is available. {error}"
   }
 }

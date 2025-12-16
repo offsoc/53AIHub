@@ -297,7 +297,7 @@ const handleDelete = async (row: NavigationItem) => {
 const handleSortChange = async ({ data = [] }: { data: NavigationItem[] }) => {
   try {
     const sortList: UpdateNavigationSortData = data.map((item, index) => ({
-      navigation_id: item.navigation_id,
+      id: item.navigation_id,
       sort: 9999 - index,
     }))
     await navigationApi.updateSort(sortList)

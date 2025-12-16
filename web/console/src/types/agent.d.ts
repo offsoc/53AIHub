@@ -62,6 +62,7 @@ declare namespace Agent {
 		enable: boolean;
 		created_time: number;
 		updated_time: number;
+    internal_members: string[];
 	}
 
   interface RelateAgent {
@@ -96,6 +97,7 @@ declare namespace Agent {
 			coze_workspace_id: string
 			coze_bot_id: string
       coze_bot_url: string
+      tencent_bot_id: string
 			app_builder_bot_id: string
 			chat53ai_agent_id: string
       channel_config: Record<string, any>

@@ -1,12 +1,11 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
 import { useEnterpriseStore } from '@/stores'
-import type { EnterpriseSyncFrom } from '@/constants/enterprise'
+import { ENTERPRISE_SYNC_FROM, type EnterpriseSyncFrom } from '@/constants/enterprise'
 
 export const getRootDepartmentData = async () => {
   const enterpriseStore = useEnterpriseStore()
-  if (!enterpriseStore.info.eid)
-    await enterpriseStore.loadSelfInfo()
+  if (!enterpriseStore.info.eid) await enterpriseStore.loadSelfInfo()
   return {
     did: 0,
     value: 0,
@@ -19,15 +18,19 @@ export const getRootDepartmentData = async () => {
 }
 
 export const departmentApi = {
-  async fetch_department_tree(params: {
-    from: EnterpriseSyncFrom
-    keyword?: string
-    offset?: number
-    limit?: number
-  } = {
-    from: '0',
-  }) {
-    let { data: { tree: treeData = [] } } = await service.get('/api/departments/tree', { params }).catch(handleError)
+  async fetch_department_tree(
+    params: {
+      from: EnterpriseSyncFrom
+      keyword?: string
+      offset?: number
+      limit?: number
+    } = {
+      from: '0',
+    }
+  ) {
+    let {
+      data: { tree: treeData = [] },
+    } = await service.get('/api/departments/tree', { params }).catch(handleError)
     const findData = (data: any = {}) => {
       data = {
         ...data,
@@ -51,26 +54,24 @@ export const departmentApi = {
       return item
     })
     const rootData = await getRootDepartmentData()
-    return [{
-      ...rootData,
-      bind_value: '0',
-      children: JSON.parse(JSON.stringify(treeData)),
-    }]
+    return [
+      {
+        ...rootData,
+        bind_value: '0',
+        children: JSON.parse(JSON.stringify(treeData)),
+      },
+    ]
   },
-  async save(data: {
-    did?: number
-    name: string
-    pdid?: number
-    sort?: number
-  }) {
+  async save(data: { did?: number; name: string; pdid?: number; sort?: number }) {
     data = JSON.parse(JSON.stringify(data))
     const did = data.did || 0
     delete data.did
-    if (typeof data.sort === 'undefined')
-      data.sort = 999999
-    if (!data.pdid)
-      data.pdid = 0
-    return await service[did ? 'put' : 'post'](`/api/departments${did ? `/${did}` : ''}`, data).catch(handleError)
+    if (typeof data.sort === 'undefined') data.sort = 999999
+    if (!data.pdid) data.pdid = 0
+    return await service[did ? 'put' : 'post'](
+      `/api/departments${did ? `/${did}` : ''}`,
+      data
+    ).catch(handleError)
   },
 
   async delete(did: number) {
@@ -79,7 +80,12 @@ export const departmentApi = {
   tree(from: EnterpriseSyncFrom) {
     return service.get('/api/departments/tree', { params: { from } }).catch(handleError)
   },
-  sync(from: EnterpriseSyncFrom, data = { suite_id: import.meta.env.VITE_GLOB_SUITEID }) {
+  sync(
+    from: EnterpriseSyncFrom,
+    data = {
+      suite_id: from === ENTERPRISE_SYNC_FROM.WECOM ? import.meta.env.VITE_GLOB_SUITEID : '',
+    }
+  ) {
     return service.post(`/api/departments/sync/${from}`, data).catch(handleError)
   },
   bind_member(data: { bid: number; user_id: number; from: EnterpriseSyncFrom }) {
@@ -87,6 +93,9 @@ export const departmentApi = {
   },
   unbind_member(data: { user_id: number; from: EnterpriseSyncFrom }) {
     return service.delete('/api/departments/bind-member', { data }).catch(handleError)
+  },
+  sync_progress(from: EnterpriseSyncFrom) {
+    return service.get(`/api/sync-progress/${from}`).catch(handleError)
   },
 }
 

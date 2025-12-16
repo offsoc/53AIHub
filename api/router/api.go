@@ -51,6 +51,9 @@ func SetApiRouter(router *gin.Engine) {
 		commonRoute.GET("/preview/*key", controller.PreviewFile)
 		commonRoute.GET("/response_codes", controller.GetAllResponseCodes)
 		commonRoute.POST("/reset_password", controller.ResetPassword)
+
+		// API SSO 登录
+		commonRoute.POST("/auth/sso_login", controller.ApiSSOSSOLogin)
 	}
 
 	emailRoute := apiRouter.Group("/email")
@@ -100,6 +103,9 @@ func SetApiRouter(router *gin.Engine) {
 		groupRoute.POST("/:id/agents", controller.AddAgentsToGroup)
 		groupRoute.DELETE("/:id/agents", controller.RemoveAgentsFromGroup)
 		groupRoute.GET("/:id/agents", controller.GetGroupAgents)
+		groupRoute.POST("/:id/resources", controller.AddResourcesToGroup)
+		groupRoute.DELETE("/:id/resources", controller.RemoveResourcesFromGroup)
+		groupRoute.GET("/:id/resources", controller.GetGroupResources)
 		groupRoute.DELETE("/:id/users", controller.RemoveUsersFromGroup)
 		groupRoute.GET("/:id/users", controller.GetGroupUsers)
 		groupRoute.POST("/:id/users/batch", controller.BatchAddUsersToGroup)
@@ -201,6 +207,13 @@ func SetApiRouter(router *gin.Engine) {
 		cozeRouter.GET("/workspaces/:workspace_id/bots", controller.GetCozeAllBots)
 	}
 
+	tencentRouter := apiRouter.Group("/tencent")
+	tencentRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		tencentRouter.GET("/apps", controller.GetTencentAllApps)
+		tencentRouter.GET("/apps/:app_id", controller.GetTencentAppDetail)
+	}
+
 	AppBuilderRouter := apiRouter.Group("/appbuilder")
 	AppBuilderRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
@@ -260,6 +273,15 @@ func SetApiRouter(router *gin.Engine) {
 		// Payment notification routes
 		paymentRouter.POST("/wechat/notify/:id", controller.WechatPayNotify)
 		paymentRouter.POST("/alipay/notify/:id", controller.AlipayNotify)
+	}
+
+	// 同步进度相关路由组
+	syncProgressRouter := apiRouter.Group("/sync-progress")
+	syncProgressRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		syncProgressRouter.GET("/:from", controller.GetSyncProgress)           // 获取指定来源的同步进度
+		syncProgressRouter.GET("/:from/all", controller.GetSyncProgressByFrom) // 获取指定来源的所有企业同步进度
+		syncProgressRouter.GET("", controller.GetAllSyncProgress)              // 获取所有来源的所有同步进度
 	}
 
 	// Department routes

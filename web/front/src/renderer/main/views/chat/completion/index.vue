@@ -7,22 +7,24 @@
         </div>
       </template>
       <template #after_prefix>
-        <span class="flex items-center gap-1 text-sm cursor-pointer md:hidden" @click="$router.back()">
-          <svg-icon name="return" size="18" stroke></svg-icon>
-        </span>
-        <div
-          v-tooltip="{ content: $t('chat.usage_guide') }"
-          class="h-[26px] px-2 rounded-full flex-center gap-1.5 text-sm text-primary cursor-pointer hover:bg-[#E1E2E3]"
-          @click="handleToggleGuide"
-        >
-          <div class="size-4">
-            <svg-icon name="layout-split" size="18"></svg-icon>
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex">
+          <span class="flex items-center gap-1 text-sm cursor-pointer md:hidden" @click="$router.back()">
+            <svg-icon name="return" size="18" stroke></svg-icon>
+          </span>
+          <div
+            v-tooltip="{ content: $t('chat.usage_guide') }"
+            class="h-[26px] px-2 rounded-full flex-center gap-1.5 text-sm text-primary cursor-pointer hover:bg-[#E1E2E3]"
+            @click="handleToggleGuide"
+          >
+            <div class="size-4">
+              <svg-icon name="layout-split" size="18"></svg-icon>
+            </div>
           </div>
         </div>
       </template>
     </MainHeader>
-    <div class="flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-hidden">
-      <div class="w-full lg:w-2/5 md:w-2/5 h-[auto] md:h-full bg-white rounded flex flex-col mb-3 md:mb-0">
+    <div class="h-full flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-y-auto">
+      <div class="w-full lg:w-2/5 md:w-2/5 md:h-full bg-white rounded flex flex-col mb-3 md:mb-0">
         <h3 class="flex-none h-14 flex items-center px-4 md:px-7 text-base text-[#1D1E1F] border-b">
           {{ $t('chat.input') }}
         </h3>
@@ -205,7 +207,7 @@
               </el-form-item>
 
               <el-form-item
-                v-else-if="item.type === 'file'"
+                v-else-if="['file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)"
                 :prop="`${index}.value`"
                 :label="item.label"
                 :required="item.required"
@@ -238,6 +240,7 @@
                       </div>
                       <div v-if="file.status === 'success'" class="flex items-center">
                         <el-button type="primary" link @click="handleViewFile(file)">{{ $t('action.view') }}</el-button>
+                        <el-image-viewer v-if="imageVisible" :url-list="[imageFile]" show-progress :initial-index="0" @close="imageVisible = false" />
                         <div class="w-px h-4 mx-1 bg-[#E3E5EA]" />
                         <el-button type="danger" link @click="handleDelFile(file, item)">{{ $t('action.delete') }}</el-button>
                       </div>
@@ -258,6 +261,37 @@
                   <p class="text-xs text-[#182B50CC]">{{ $t('file.file_format', { format: item.file_accept.join('、') }) }}</p>
                 </div>
               </el-form-item>
+
+              <template v-if="item.type === 'array_text'">
+                <el-form-item
+                  v-for="(input, inputIndex) in item.value"
+                  :key="inputIndex"
+                  :prop="`${index}.value[${inputIndex}]`"
+                  :label="inputIndex === 0 ? item.label : ''"
+                  :required="item.required"
+                  :rules="[{ required: item.required, message: $t('form.input_placeholder') + item.label, trigger: 'blur' }]"
+                  class="relative"
+                >
+                  <el-input
+                    v-model="item.value[inputIndex]"
+                    size="large"
+                    :placeholder="$t('form.input_placeholder')"
+                    :maxlength="item.max_length ? item.max_length : -1"
+                    :show-word-limit="item.show_word_limit"
+                  >
+                    <template #suffix>
+                      <svg-icon name="del" width="16" class="cursor-pointer hover:opacity-60" @click="handleArrayTextDelete(item, inputIndex)" />
+                    </template>
+                  </el-input>
+                  <div v-if="item.desc" class="text-xs text-[#182b50] text-opacity-30 mt-1">
+                    {{ item.desc }}
+                  </div>
+                  <el-button v-if="inputIndex === 0" link type="primary" class="absolute -top-7 right-0" @click="handleArrayTextAdd(item)">
+                    <el-icon class="mr-1"><Plus /></el-icon>
+                    {{ $t('action.add') }}
+                  </el-button>
+                </el-form-item>
+              </template>
             </template>
           </el-form>
         </div>
@@ -265,7 +299,7 @@
           <el-button :loading="loading" class="w-full" size="large" type="primary" @click="handleRun">{{ $t('chat.start_generate') }}</el-button>
         </div>
       </div>
-      <div class="flex-1 overflow-y-auto md:h-full bg-white rounded flex flex-col">
+      <div class="flex-1 md:h-full bg-white rounded flex flex-col">
         <h3 class="flex-none h-14 flex items-center px-4 md:px-7 text-base text-[#1D1E1F] border-b">
           {{ $t('chat.output') }}
         </h3>
@@ -368,7 +402,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect, nextTick } from 'vue'
-import { Download, CopyDocument, Close, Warning, Loading } from '@element-plus/icons-vue'
+import { Download, CopyDocument, Close, Warning, Loading, Plus } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
 
@@ -409,6 +443,8 @@ const showOutput = ref(false)
 const result = ref([])
 const resultStr = ref('')
 const showHelper = ref(false)
+const imageVisible = ref(false)
+const imageFile = ref()
 
 const validator = (item) => {
   return (rule, value, callback) => {
@@ -454,8 +490,19 @@ const handleAddTag = (item) => {
 const handleDelTag = (item, index) => {
   item.value.splice(index, 1)
 }
+const handleArrayTextAdd = (item) => {
+  item.value.push('')
+}
+const handleArrayTextDelete = (item, index) => {
+  if (item.value.length === 1) {
+    item.value = ['']
+    return
+  }
+  item.value.splice(index, 1)
+}
 const handleViewFile = (file) => {
-  window.open(file.url, '_blank')
+  imageVisible.value = true
+  imageFile.value = file?.url
 }
 const handleDelFile = (file, item) => {
   item.value = item.value.filter((item) => item.id !== file.id)
@@ -468,8 +515,13 @@ const handleDownload = () => {
 const getInputs = () => {
   const inputs = inputForm.value.reduce(
     (result, item) => {
+      if (item.value.toString() === '') return result
       if (item.type === 'file') {
         result[`${item.variable}`] = item.value.map((item) => `file_id:${item.id}`).join(',')
+      } else if (['array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)) {
+        result[`${item.variable}`] = item.value.map((item) => `file_id:${item.id}`)
+      } else if (item.type === 'array_text') {
+        result[`${item.variable}`] = item.value
       } else {
         result[`${item.variable}`] =
           item.type === 'select' && !item.multiple ? item.value : Array.isArray(item.value) ? item.value.join(',') : String(item.value)
@@ -489,16 +541,17 @@ const getInputs = () => {
 const getQuestion = (inputs): string => {
   let question = ''
   let index = 0
+  const keys = Object.keys(inputs)
+  if (keys.length === 0) return ''
   while (!question) {
-    const value = inputs[Object.keys(inputs)[index]]
-    if (value.includes('file_id:')) {
-      question = 'image'
-    } else {
-      question = value
+    const value = inputs[keys[index]]
+    if (value) {
+      question = String(question).slice(0, 20)
+      return question
     }
     index++
   }
-  return question.slice(0, 20)
+  return ''
 }
 
 const workflowRun = async () => {
@@ -528,6 +581,7 @@ const workflowRun = async () => {
     .then((response) => {
       const res = JSON.parse(response)
       const output = convStore.currentAgent.settings_obj.output_fields.reduce((result, item) => {
+        if (!res.data.workflow_output_data[item.variable]) return result
         result.push({
           id: item.id,
           label: item.label,
@@ -565,10 +619,12 @@ const handleToggleGuide = () => {
 const initAgent = () => {
   inputForm.value = (convStore.currentAgent.settings_obj?.input_fields || []).map((item) => {
     let value
-    if (['tag', 'file'].includes(item.type)) {
+    if (['tag', 'file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)) {
       value = []
     } else if (item.type === 'select' && item.multiple) {
       value = []
+    } else if (item.type === 'array_text') {
+      value = ['']
     } else {
       value = ''
     }

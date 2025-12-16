@@ -15,6 +15,8 @@ import {
   INTERNAL_USER_STATUS_UNDEFINED,
   userApi,
 } from '@/api/modules/user'
+import { groupApi, Group } from '@/api/modules/group'
+import { GROUP_TYPE } from '@/constants/group'
 import { useEnterpriseStore, useUserStore } from '@/stores'
 import { useEnv } from '@/hooks/useEnv'
 
@@ -22,9 +24,9 @@ import { ENTERPRISE_SYNC_FROM } from '@/constants/enterprise'
 import type { EnterpriseSyncFrom } from '@/constants/enterprise'
 
 const props = withDefaults(defineProps<{
-  syncFrom?: EnterpriseSyncFrom
+    syncFrom?: EnterpriseSyncFrom
 }>(), {
-  syncFrom: ENTERPRISE_SYNC_FROM.DEFAULT,
+    syncFrom: ENTERPRISE_SYNC_FROM.DEFAULT,
 })
 
 const enterpriseStore = useEnterpriseStore()
@@ -50,6 +52,7 @@ const filterForm = reactive({
   pageSize: 10,
 })
 const loading = ref(false)
+const groupData = ref<Record<number, string>>({})
 const tableData = ref([])
 const tableTotal = ref(0)
 
@@ -63,6 +66,14 @@ const refresh = () => {
   filterForm.page = 1
   fetchUserList()
 }
+
+const fetchGroupData = async () => {
+  const list = await groupApi.list({ params: { group_type: GROUP_TYPE.INTERNAL_USER } })
+  list.forEach((item: Group) => {
+    groupData.value[item.group_id] = item.group_name
+  })
+}
+
 const fetchUserList = async () => {
   if (loading.value)
     return
@@ -82,6 +93,13 @@ const fetchUserList = async () => {
   })
   tableData.value = list.map((item) => {
     item.deleting = false
+    item.group_names = (item.group_ids ?? [])
+      .reduce((names: string[], id: number) => {
+        const name = groupData.value[id]
+        if (name) names.push(name)
+        return names
+      }, [])
+      .join('、')
     return item
   })
   tableTotal.value = +total || 0
@@ -131,6 +149,7 @@ const handleMoreCommand = (command, data = {}) => {
 }
 
 onMounted(async () => {
+  await fetchGroupData()
   refresh()
 })
 onUnmounted(() => {
@@ -202,6 +221,9 @@ onUnmounted(() => {
           <template #default="{ row }">
             <span>{{ row.dept_names || enterpriseStore.info.name || '--' }}</span>
           </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('internal_user.group.title')" min-width="140" prop="group" show-overflow-tooltip>
+          <template #default="{ row }"> {{ row.group_names || '--' }} </template>
         </ElTableColumn>
         <ElTableColumn :label="$t('internal_user.account.status')" min-width="140" prop="status" show-overflow-tooltip>
           <template #default="{ row }">

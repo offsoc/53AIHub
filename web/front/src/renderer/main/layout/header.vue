@@ -2,14 +2,14 @@
   <!--  v-if="needLogin ? userStore.is_login : true" -->
   <header class="flex-none h-[70px] border-b sticky top-0 z-10" :class="[type === 'homepage' ? 'nav-bg' : 'bg-white']">
     <div class="mx-auto px-4 flex items-center justify-between h-full" :class="mainClass">
-      <div class="flex-1 flex items-center gap-2 overflow-hidden">
+      <div class="flex-1 flex items-center gap-2 overflow-hidden relative">
         <slot name="before_prefix"></slot>
         <div
           v-if="siderButton && !globalStore.siderVisible"
           v-tooltip="{
             content: $t('chat.expand_side_bar')
           }"
-          class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE]"
+          class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE] absolute top-0 left-0"
           @click="globalStore.toggleSider"
         >
           <svg-icon name="layout-left" size="20" color="#9A9A9A"></svg-icon>

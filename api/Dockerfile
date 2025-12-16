@@ -10,7 +10,10 @@ ENV GOPROXY=https://goproxy.cn,direct
 RUN echo "deb https://mirrors.aliyun.com/debian/ bookworm main contrib non-free\n\
 deb https://mirrors.aliyun.com/debian/ bookworm-updates main contrib non-free\n\
 deb https://mirrors.aliyun.com/debian-security bookworm-security main" > /etc/apt/sources.list && \
-    apt-get update && apt-get install -y gcc libc6-dev
+    apt-get update -o Acquire::Retries=3 -o Acquire::http::Timeout=10 && \
+    apt-get install -y --no-install-recommends gcc libc6-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # 复制go.mod和go.sum文件
 COPY go.mod go.sum ./

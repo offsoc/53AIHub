@@ -97,7 +97,7 @@ export interface UpdateNavigationStatusData {
  * 更新导航排序数据
  */
 export type UpdateNavigationSortData = {
-  navigation_id: number
+  id: number
   sort: number
 }[]
 

@@ -70,7 +70,7 @@ watch(
 )
 
 onMounted(() => {
-  navigationStore.fetchNavigations()
+  // navigationStore.fetchNavigations()
 })
 </script>
 

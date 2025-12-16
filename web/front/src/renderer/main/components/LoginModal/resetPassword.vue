@@ -14,7 +14,7 @@
           v-model="form.verify_code"
           v-trim
           size="large"
-          class="min-w-80 no-right-radius flex-1"
+          class="md:min-w-80 no-right-radius flex-1"
           :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
         >
           <template #append>

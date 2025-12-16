@@ -51,6 +51,16 @@ export const domainApi = {
   deleteIndependent(domainId: number) {
     return service.delete(`/api/saas/domains/independent/${domainId}`).catch(handleError)
   },
+
+  /**
+   * 检查域名是否存在
+   */
+  checkIsDomainExists(subdomain: string) {
+    return service
+      .get(`/api/saas/domains/check?subdomain=${subdomain}`)
+      .then(res => res.data)
+      .catch(err => console.log(err))
+  },
 }
 
 export default domainApi

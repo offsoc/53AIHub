@@ -1147,7 +1147,7 @@ type InternalUserResponse struct {
 // @Param limit query int false "每页数量，默认为10"
 // @Param not_bind query int false "筛选没有绑定的用户，0表示不筛选，1表示未绑定"
 // @Param did query int false "部门ID，0表示不按部门筛选"
-// @Param from query int false "来源，0 1企业微信"
+// @Param from query int false "来源，0 1企业微信，2钉钉"
 // @Success 200 {object} model.CommonResponse{data=InternalUserResponse} "成功"
 // @Failure 400 {object} model.CommonResponse "参数错误"
 // @Failure 401 {object} model.CommonResponse "未授权"
@@ -1758,7 +1758,7 @@ func UpdateUserMobile(c *gin.Context) {
 // @Security BearerAuth
 // @Param did query int64 false "部门ID" default(0)
 // @Param status query int false "用户状态（0：未加入，1：已加入 -1 全部）" default(-1)
-// @Param from query int false "绑定来源（0：默认，1：企业微信）" default(0)
+// @Param from query int false "绑定来源（0：默认，1：企业微信，2：钉钉）" default(0)
 // @Param keyword query string false "搜索关键字"
 // @Param offset query int false "offset" default(0)
 // @Param limit query int false "limit" default(10)

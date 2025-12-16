@@ -22,6 +22,8 @@
       <div v-loading="tableLoading" class="flex-1 overflow-y-auto bg-white rounded-lg mt-4">
         <TablePlus
           :data="tableData"
+          :page="filter_form.offset + 1"
+          :limit="filter_form.limit"
           :total="tableTotal"
           style="width: 100%"
           header-row-class-name="rounded overflow-hidden"
@@ -32,7 +34,7 @@
           <ElTableColumn :label="$t('space.name')" min-width="160" prop="name" show-overflow-tooltip>
             <template #default="{ row }">
               <div class="flex items-center gap-2">
-                <img :src="row.icon" class="size-8" />
+                <img :src="row.icon" class="size-8 rounded" />
                 <span>
                   {{ row.name }}
                 </span>
@@ -69,10 +71,10 @@
           </ElTableColumn> -->
           <ElTableColumn :label="$t('operation')" width="170" fixed="right" align="right">
             <template #default="{ row }">
-              <ElButton class="text-[#5A6D9E] !bg-transparent" type="text" @click.stop="handleEdit(row)">
+              <ElButton class="text-[#5A6D9E] !bg-transparent" link @click.stop="handleEdit(row)">
                 {{ $t('action_edit') }}
               </ElButton>
-              <!-- <ElButton class="text-[#5A6D9E] !bg-transparent" type="text" @click.stop="handleManage(row)">
+              <!-- <ElButton class="text-[#5A6D9E] !bg-transparent" link @click.stop="handleManage(row)">
                 {{ $t('knowledge.name') }}
               </ElButton> -->
               <ElTooltip
@@ -82,7 +84,7 @@
                 trigger="hover"
               >
                 <span class="ml-2">
-                  <ElButton disabled class="text-[#5A6D9E] !bg-transparent" type="text" @click.stop="handleDelete(row)">
+                  <ElButton disabled class="text-[#5A6D9E] !bg-transparent" link @click.stop="handleDelete(row)">
                     {{ $t('action_delete') }}
                   </ElButton>
                 </span>
@@ -98,7 +100,7 @@
                   <ElButton
                     :disabled="row.library_count > 0"
                     class="text-[#5A6D9E] !bg-transparent"
-                    type="text"
+                    link
                     @click.stop="handleDelete(row)"
                   >
                     {{ $t('action_delete') }}
@@ -131,6 +133,7 @@ const filter_form = reactive({
   name: '',
   offset: 0,
   limit: 10,
+  view: 'admin',
 })
 
 const tableData = ref<SpaceDisplayItem[]>([])
@@ -146,8 +149,10 @@ const loadList = async () => {
   tableData.value = transformSpaceList(res.spaces)
 }
 
-const refresh = () => {
-  filter_form.offset = 0
+const refresh = (reset: boolean = true) => {
+  if (reset) {
+    filter_form.offset = 0
+  }
   loadList()
 }
 const handleSizeChange = (size: number) => {
@@ -185,7 +190,7 @@ const handleDelete = async (data: SpaceItem) => {
     if (value === data.name) {
       await spacesApi.delete(data.id)
       ElMessage.success(window.$t('action_delete_success'))
-      refresh()
+      refresh(false)
     }
   })
 }

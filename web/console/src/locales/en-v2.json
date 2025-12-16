@@ -62,6 +62,8 @@
     "knowledge": "Knowledge management",
     "space": "Team Space",
     "agent_search_placeholder": "Search AI Agent",
+    "prompt_search_placeholder": "Prompt Name",
+    "ai_product": "AI Product",
     "ai_toolbox": "AI Tools",
     "ai_toolbox_search_placeholder": "Search Tool",
     "operation_management": "Operations management",
@@ -271,7 +273,7 @@
     "contact_name_placeholder": "Please enter contact person",
     "complete_registration_and_login": "Complete Registration and Login",
     "apply_open_repetition": "You have already submitted an application, please do not submit it again",
-    "select_enterprise": "Select Existing Site",
+    "select_enterprise": "Select To Enter The Enterprise",
     "new_user_tip": "Your initial password is “{password}”, please modify it in time",
     "I_remember": "I got it",
     "modify_password": "Modify Password"
@@ -284,9 +286,16 @@
     "contact_customer_service": "meet problems? Contact Customer Service",
     "contact_customer_service_v2": "Contact Customer Service",
     "create_site": "Create Site",
+    "create_title": "Welcome to activate 53AI {project}",
     "waiting_audit": "Waiting for review",
     "create_success": "Created successfully",
-    "expired_time_forever": "Permanently valid"
+    "expired_time_forever": "Permanently valid",
+    "enterprise_name_placeholder": "Please enter the enterprise/organization name",
+    "domain": "Domain Name",
+    "domain_placeholder": "Please enter your domain name",
+    "enterprise_not_empty": "The enterprise/organization name cannot be empty",
+    "mobile_unregistered_tip": "This mobile number is unregistered. Enter the verification code and login password to complete enterprise creation.",
+    "domain_already_use": "{domain} is already in use. Please try another domain~"
   },
   "service": {
     "title": "Activate Now",
@@ -454,7 +463,10 @@
     "fastgpt_agent": "FastGPT",
     "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
-    "check_agent_config_tip": "Please check if the agent configuration is correct"
+    "n8n_workflow": "n8n",
+    "tencent": "Tencent Cloud",
+    "check_agent_config_tip": "Please check if the agent configuration is correct",
+    "failed_tip": "Please check if the authorization key is available and if the balance is sufficient."
   },
   "provider_platform": {
     "prompt": "Prompt",
@@ -519,6 +531,8 @@
       "usable": "Available",
       "remove_user_confirm": "Are you sure you want to remove this member?",
       "remove_agent_confirm": "Are you sure you want to remove this agent?",
+      "remove_prompt_confirm": "Are you sure you want to remove this prompt?",
+      "remove_ai_toolkit_confirm": "Are you sure you want to remove this AI tool?",
       "create_tip": "Please create a group first"
     },
     "status": {
@@ -604,13 +618,19 @@
       "abbr_title": "DingTalk",
       "access_title": "Access DingTalk",
       "access_desc": "Create a enterprise internal application to achieve access",
-      "sync_desc": "After completing the DingTalk authorization binding, you can bind the DingTalk account source to import the DingTalk member directory"
+      "sync_desc": "After completing the DingTalk authorization binding, you can bind the DingTalk account source to import the DingTalk member directory",
+      "sync_tip": "The DingTalk organizational structure has been synchronized."
     },
     "ad_ldap": {
       "title": "AD/LDAP",
       "abbr_title": "AD/LDAP",
       "access_title": "Access AD/LDAP",
       "access_desc": "After binding AD/LDAP, you can import the AD/LDAP member directory and realize single sign-on for AD/LDAP accounts in 53Hub"
+    },
+    "api_access": {
+      "title": "API Access",
+      "access_title": "API Access",
+      "access_desc": "Single sign-on is achieved through API authentication. Users can log in directly by clicking the link without manually entering their account and password"
     },
     "feishu": {
       "title": "Feishu",
@@ -635,7 +655,18 @@
     "unbind_member": "Cancel Association",
     "bind_member_tip": "Confirm associating this member with the current user?",
     "unbind_member_tip": "Confirm canceling association with this member?",
-    "auth_completed_tip": "Please confirm you have completed app binding; Page will refresh after confirmation"
+    "auth_completed_tip": "Please confirm you have completed app binding; Page will refresh after confirmation",
+    "access_setting": "Access Settings",
+    "access_method": "Access Method: ",
+    "method_tip1": "1. Single sign-on is achieved by completing user identity authentication through a single jump",
+    "method_tip2": "2. The link format is: ",
+    "method_tip3": "3. Parameter description: ",
+    "username_tip": "a mobile phone or an email address",
+    "timestamp_tip": "Current timestamp (This link will expire in 10 minutes)",
+    "sign_tip": "It is an md5 value of Sercet concatenated from timestamp={timestamp}&username={username}",
+    "enable_encryption": "Enable Encryption: ",
+    "API_documentation": "API Documentation",
+    "save_success": "Saved Successfully"
   },
   "action_visit": "Visit",
   "action_add": "Add",
@@ -645,6 +676,8 @@
   "action_save": "Save",
   "action_save_success": "Saved",
   "action_save_failed": "Saving failed",
+  "action_sync_start": "Sync Failed",
+  "action_sync_failed": "Start Sync",
   "action_delete": "Delete",
   "action_delete_tip": "Delete Prompt",
   "action_delete_confirm": "Are you sure to delete this data?",
@@ -894,10 +927,15 @@
   "volcengine": "Volcengine",
   "sort": "Sort",
   "official_website": "Home",
+  "create_new_enterprise": "Create a New Enterprise/Organization",
+  "return": "Back",
   "apply_open": "Apply for Activation",
   "user_register": "User Register",
   "account_register": "Register Account",
   "or": "Or",
+  "other_login_method": "Other login methods",
+  "account_psd": "Account And Password",
+  "mobile_login": "SMS Login",
   "apply_success": "Application Successful",
   "apply_success_desc": "We will complete the review within 24 hours. You can also scan the code to add a dedicated customer service to know the progress",
   "agent_not_found": "Please save the created agent first",
@@ -923,6 +961,7 @@
   "53ai_api_screet": "Secret Key",
   "upload_pem_file_tip": "Please upload pem file",
   "usage_range": "Usage Range",
+  "internal_member_group": "Internal Member Grouping",
   "dify_agent_get_tip": "Go to Dify and login ({url}) \nStep 1: Select the agent to be accessed, click \"Access API\" \nStep 2: Copy \"API Server\" and \"API Secret Key\" in the upper right corner, and fill in the form below.",
   "53ai_agent_get_tip": "Go to 53AI and login ({url}) \n Step 1: Select the agent to be accessed, click \"Access API\" \n Step 2: Copy \"API Endpoint\" 、 \"Bot-Id\" 和 \"SECRET_KEY\", and fill in the form below.",
   "bailian_agent_get_tip": "Go to Alibaba Bailian and login ({ url })\n Step 1: Login Alibaba Bailian and go to the Application - Application Management page.\n Step 2:  Select an application, copy the 'Application ID' in the application card and paste it into the form below.\n Step3: Click Publish under the application card to obtain the API - KEY, copy and paste it into the form below.",

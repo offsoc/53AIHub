@@ -52,3 +52,22 @@ export interface DomainListResponse {
  * 原始域名列表响应（从 API 返回）
  */
 export type RawDomainListResponse = any
+
+export type DomainConfig = {
+  enable_https?: string | number
+  [key: string]: unknown
+}
+
+export type DomainData = {
+  id?: number
+  domain?: string
+  domain_name?: string
+  config?: string | DomainConfig
+  [key: string]: unknown
+}
+
+export type IndependentDomainInfo = {
+  httpsEnabled: boolean
+  domainName: string
+  rawData: DomainInfo
+}

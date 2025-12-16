@@ -18,6 +18,31 @@ export const inputTypeList = [
   { label: window.$t('variable_type.date'), type: 'date', allowed: ['53ai_workflow'] },
   { label: window.$t('variable_type.tag'), type: 'tag', allowed: ['53ai_workflow'] },
   { label: window.$t('variable_type.file'), type: 'file' },
+  {
+    label: window.$t('variable_type.array_text'),
+    type: 'array_text',
+    allowed: ['coze_workflow_cn'],
+  },
+  {
+    label: window.$t('variable_type.array_image'),
+    type: 'array_image',
+    allowed: ['coze_workflow_cn'],
+  },
+  {
+    label: window.$t('variable_type.array_audio'),
+    type: 'array_audio',
+    allowed: ['coze_workflow_cn'],
+  },
+  {
+    label: window.$t('variable_type.array_video'),
+    type: 'array_video',
+    allowed: ['coze_workflow_cn'],
+  },
+  {
+    label: window.$t('variable_type.array_file'),
+    type: 'array_file',
+    allowed: ['coze_workflow_cn'],
+  },
 ]
 
 export const outputTypeList = [

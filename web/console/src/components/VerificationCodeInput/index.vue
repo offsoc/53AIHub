@@ -1,7 +1,7 @@
 <template>
   <ElInput
     v-model="input_value"
-    :style="{ '--el-input-bg-color': bgColor, '--el-input-border-color': 'transparent', '--el-input-height': height }"
+    :style="{ '--el-input-height': height }"
     :clearable="clearable"
     :size="size"
     :disabled="disabled"

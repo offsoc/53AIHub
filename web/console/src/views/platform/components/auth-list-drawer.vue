@@ -46,9 +46,18 @@
       </ElTableColumn>
 
       <ElTableColumn
-        v-if="originData.provider_type === PROVIDER_VALUE.COZE_CN"
+        v-else-if="originData.provider_type === PROVIDER_VALUE.COZE_CN"
         prop="configs.client_id"
         :label="$t('module.platform_auth_client_id')"
+        min-width="180"
+        show-overflow-tooltip
+      >
+      </ElTableColumn>
+
+      <ElTableColumn
+        v-else-if="originData.provider_type === PROVIDER_VALUE.TENCENT"
+        prop="configs.secret_id"
+        :label="$t('module.platform_auth_secret_id')"
         min-width="180"
         show-overflow-tooltip
       >

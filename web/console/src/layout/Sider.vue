@@ -47,41 +47,55 @@
           <!-- #endif -->
 
           <!-- #ifdef KM -->
-          <el-sub-menu index="/space">
-            <template #title>
-              <svg-icon name="app" width="18px" class="mr-2" />
-              <span>{{ $t('module.knowledge') }}</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="/space">
-                {{ $t('module.space') }}
-              </el-menu-item>
-            </el-menu-item-group>
-          </el-sub-menu>
+          <el-menu-item index="/space">
+            <svg-icon name="app-one" width="18px" class="mr-2" />
+            <span>{{ $t('module.space') }}</span>
+          </el-menu-item>
+
           <el-sub-menu index="/chunk">
             <template #title>
-              <svg-icon name="app" width="18px" class="mr-2" />
+              <svg-icon name="book-one" width="18px" class="mr-2" />
               <span>{{ $t('module.library') }}</span>
             </template>
+            <el-menu-item-group>
+              <el-menu-item v-if="isKmRc" index="/viewer">
+                {{ $t('module.viewer') }}
+              </el-menu-item>
+            </el-menu-item-group>
+            <el-menu-item-group>
+              <el-menu-item index="/parse">
+                {{ $t('module.parse') }}
+              </el-menu-item>
+            </el-menu-item-group>
+            <el-menu-item-group>
+              <el-menu-item index="/model"> {{ $t('module.model_setting') }} </el-menu-item>
+            </el-menu-item-group>
             <el-menu-item-group>
               <el-menu-item index="/chunk">
                 {{ $t('module.chunk_setting') }}
               </el-menu-item>
             </el-menu-item-group>
-
+          </el-sub-menu>
+          <el-sub-menu index="/search">
+            <template #title>
+              <svg-icon name="file-search-two" width="18px" class="mr-2" />
+              <span>{{ $t('module.search_section') }}</span>
+            </template>
             <el-menu-item-group>
-              <el-menu-item index="/model"> 模型设置 </el-menu-item>
+              <el-menu-item v-if="isKmRc" index="/search">
+                {{ $t('module.search') }}
+              </el-menu-item>
             </el-menu-item-group>
           </el-sub-menu>
           <!-- #endif -->
 
+          <!-- #ifndef KM -->
           <el-sub-menu index="3">
             <template #title>
               <svg-icon name="operate" width="18px" class="mr-2" />
               <span>{{ $t('module.operation_management') }}</span>
             </template>
             <el-menu-item-group>
-              <!-- #ifndef KM -->
               <el-menu-item v-if="enterprise_info.is_independent || enterprise_info.is_industry" index="/order">
                 {{ $t('module.operation_order') }}
               </el-menu-item>
@@ -96,13 +110,6 @@
               <el-menu-item index="/subscription">
                 {{ $t('module.subscription') }}
               </el-menu-item>
-              <!-- #endif -->
-
-              <!-- #ifdef KM -->
-              <el-menu-item index="/user/internal">
-                {{ $t('internal_user.title') }}
-              </el-menu-item>
-              <!-- #endif -->
 
               <el-menu-item index="/user/admin">
                 {{ $t('admin_user.title') }}
@@ -113,7 +120,6 @@
             </el-menu-item-group>
           </el-sub-menu>
 
-          <!-- #ifndef KM -->
           <el-sub-menu index="5">
             <template #title>
               <svg-icon name="decoration" width="18px" class="mr-2" />
@@ -132,15 +138,30 @@
             </el-menu-item-group>
           </el-sub-menu>
           <!-- #endif -->
+
           <el-sub-menu index="6">
             <template #title>
               <svg-icon name="setting" width="18px" class="mr-2" />
+              <!-- #ifdef KM -->
+              <span>{{ $t('module.system_config') }}</span>
+              <!-- #endif -->
+              <!-- #ifndef KM -->
               <span>{{ $t('module.site_config') }}</span>
+              <!-- #endif -->
             </template>
             <el-menu-item-group>
               <el-menu-item index="/info">
                 {{ $t('module.website_info') }}
               </el-menu-item>
+
+              <!-- #ifdef KM -->
+              <el-menu-item index="/user/admin">
+                {{ $t('admin_user.title') }}
+              </el-menu-item>
+              <el-menu-item index="/user/internal">
+                {{ $t('internal_user.alias') }}
+              </el-menu-item>
+              <!-- #endif -->
               <el-menu-item v-if="!isOpLocalEnv && !enterprise_info.is_independent" index="/sso">
                 {{ $t('sso.title') }}
               </el-menu-item>
@@ -244,6 +265,8 @@ withDefaults(
   }
 )
 
+const isKmRc =
+  ['kmrc.53ai.com', 'km.cc'].includes(window.location.host) || /192\.168\.1\.\d+/.test(window.location.host)
 const { isOpLocalEnv, isWorkEnv } = useEnv()
 const route = useRoute()
 const user_store = useUserStore()

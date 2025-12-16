@@ -37,6 +37,7 @@ var PreConsumedQuota int64 = 500
 var WECOM_SUITE_ID = env.String("WECOM_SUITE_ID", "")
 var IS_TEST_WECOM_SUITE = env.Bool("IS_TEST_WECOM_SUITE", false)
 var HUAWEI_CLOUD_ACCESS_KEY = env.String("HUAWEI_CLOUD_ACCESS_KEY", "")
+var DINGTALK_SUITE_ID = env.String("DINGTALK_SUITE_ID", "")
 
 func GetApiHost() string {
 	if !strings.HasSuffix(ApiHost, "/") {
@@ -121,6 +122,10 @@ func GetBinScriptPath(shName string) string {
 
 func GetWecomSuiteID() string {
 	return WECOM_SUITE_ID
+}
+
+func GetDingtalkSuiteID() string {
+	return DINGTALK_SUITE_ID
 }
 
 func GetUserRole(c *gin.Context) int64 {

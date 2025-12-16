@@ -54,6 +54,18 @@
             </span>
           </template>
         </ElTableColumn>
+        <ElTableColumn :label="$t('usage_range')" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div :class="!row.user_group_names.length ? 'text-[#999]' : ''">
+              <span class="text-[#999]">{{ $t('register_user.title') }}： </span
+              >{{ row.user_group_names.join('、') || '--' }}
+            </div>
+            <div :class="!row.internal_members.length ? 'text-[#999]' : ''">
+              <span class="text-[#999]">{{ $t('internal_user.title') }}： </span
+              >{{ row.internal_members.join('、') || '--' }}
+            </div>
+          </template>
+        </ElTableColumn>
         <ElTableColumn :label="$t('action_enable')" width="100">
           <template #default="{ row }">
             <ElSwitch
@@ -89,8 +101,9 @@ import CreateDrawer from './components/create-drawer.vue'
 
 import eventBus from '@/utils/event-bus'
 import { promptApi } from '@/api/modules/prompt'
-
+import { groupApi, Group } from '@/api/modules/group'
 import { GROUP_TYPE } from '@/constants/group'
+import { subscriptionApi } from '@/api/modules/subscription'
 
 defineOptions({
   name: 'Prompt',
@@ -110,6 +123,35 @@ const filter_form = reactive({
 const table_data = ref([])
 const table_total = ref(0)
 const table_loading = ref(false)
+const internalGroupOptions = ref<Record<number, string>>({})
+const subscriptionListOptions = ref<Record<number, string>>({})
+
+const loadSubscriptionList = async () => {
+  const subscriptionList = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
+  subscriptionList.forEach((item: Group) => {
+    subscriptionListOptions.value[item.group_id] = item.group_name
+  })
+}
+
+// 内部成员列表
+const loadInternalGroupList = async () => {
+  const list = await groupApi.list({ params: { group_type: GROUP_TYPE.INTERNAL_USER } })
+  list.forEach((item: Group) => {
+    internalGroupOptions.value[item.group_id] = item.group_name
+  })
+}
+
+// 分组列表
+const getGroupList = () => {
+  const options = groupTabsRef.value.getData()
+  const idNameMap: Record<number, string> = {}
+  if (options?.length > 0) {
+    options.forEach((item: Group) => {
+      idNameMap[item.group_id] = item.group_name
+    })
+  }
+  return idNameMap
+}
 
 const fetchPromptData = async () => {
   table_loading.value = true
@@ -128,16 +170,29 @@ const fetchPromptData = async () => {
   table_total.value = total
   table_data.value = []
   await nextTick()
+  const options = getGroupList()
   table_data.value = [...list].map(item => {
     item.group_ids = item.group_ids || []
-    let options = groupTabsRef.value.getData()
-    options = options.filter(row => (item.group_ids || []).includes(row.group_id)) || {}
-    item.group_names = options.map(row => row.group_name)
+    item.group_names = []
+    item.internal_members = []
+    item.user_group_names = []
+    item.group_ids.forEach((id: number) => {
+      if (options[id]) {
+        item.group_names.push(options[id])
+      }
+      if (internalGroupOptions.value[id]) {
+        item.internal_members.push(internalGroupOptions.value[id])
+      }
+      if (subscriptionListOptions.value[id]) {
+        item.user_group_names.push(subscriptionListOptions.value[id])
+      }
+    })
     return item
   })
 }
 const refresh = async () => {
   filter_form.page = 1
+  await loadSubscriptionList()
   return fetchPromptData()
 }
 const onTableSizeChange = (size: number) => {
@@ -176,8 +231,9 @@ const handleMoreCommand = async (command, data = {}) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // refresh()
+  await loadInternalGroupList()
   eventBus.on('user-login-success', refresh)
   eventBus.on('prompt-create', refresh)
   eventBus.on('prompt-update', fetchPromptData)

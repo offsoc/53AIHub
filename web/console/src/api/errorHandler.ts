@@ -1,6 +1,5 @@
 import { ElMessage } from 'element-plus'
 
-import type { ResponseStatus } from './code'
 import {
   ERROR_MESSAGES,
   RESPONSE_CODE_MESSAGE_MAP,
@@ -98,12 +97,13 @@ export function handleError(error: ErrorResponse): Promise<never> {
   }
 
   // 使用带去重功能的消息显示
-  if (message) {
+  if (message && code !== ResponseCode.UNAUTHORIZED_ERROR) {
     showMessage(message)
   }
 
-  if (code === ResponseCode.TOKEN_EXPIRED_ERROR) {
+  if (code === ResponseCode.TOKEN_EXPIRED_ERROR || code === ResponseCode.UNAUTHORIZED_ERROR) {
     localStorage.removeItem('access_token')
+    localStorage.removeItem('site_token')
     window.location.reload(true)
   }
   return Promise.reject(error)

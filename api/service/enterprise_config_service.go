@@ -149,13 +149,23 @@ func GetEnterpriseConfigByType(eid int64, configType string) (*model.EnterpriseC
 	return &config, nil
 }
 
-// SaveEnterpriseConfig 保存单个企业配置详情
+/*
+SaveEnterpriseConfig 保存或更新单个企业配置。
+
+行为：
+- 若当前 EID 下不存在指定 type 的配置，则创建一条新记录（content 与 enabled 使用传入值）。
+- 若已存在，则更新该记录的 Content 与 Enabled 字段并保存。
+
+返回值：
+- 成功返回保存后的 *model.EnterpriseConfig
+- 失败返回 error
+*/
 func SaveEnterpriseConfig(eid int64, configType string, content string, enabled bool) (*model.EnterpriseConfig, error) {
 	var config model.EnterpriseConfig
 	err := model.DB.Where("eid = ? AND type = ?", eid, configType).First(&config).Error
 
 	if err != nil {
-		// 如果没有找到配置，则创建新配置
+		// 未找到配置：创建新记录
 		config = model.EnterpriseConfig{
 			EID:     eid,
 			Type:    configType,
@@ -167,7 +177,7 @@ func SaveEnterpriseConfig(eid int64, configType string, content string, enabled 
 			return nil, err
 		}
 	} else {
-		// 如果找到了配置，则更新内容
+		// 找到配置：更新 Content 与 Enabled 后保存
 		config.Content = content
 		config.Enabled = enabled
 		err = model.DB.Save(&config).Error
@@ -201,21 +211,11 @@ func ToggleEnterpriseConfig(eid int64, configType string) (bool, error) {
 		return false, err
 	}
 
-	// 解析当前配置内容
-	var content ConfigContent
-	_ = json.Unmarshal([]byte(config.Content), &content)
-
 	// 切换状态
 	config.Enabled = !config.Enabled
 
-	// 更新配置内容
-	updatedContent, err := json.Marshal(content)
-	if err != nil {
-		return false, err
-	}
-
 	// 保存更新后的配置
-	_, err = SaveEnterpriseConfig(eid, configType, string(updatedContent), config.Enabled)
+	_, err = SaveEnterpriseConfig(eid, configType, config.Content, config.Enabled)
 	if err != nil {
 		return false, err
 	}

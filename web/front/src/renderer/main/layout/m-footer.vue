@@ -16,7 +16,7 @@
           <router-link
             :to="{ name: item.name }"
             class="h-14 px-2 flex flex-col items-center justify-center gap-1 cursor-pointer"
-            :class="[$route.name === item.name ? 'text-theme' : 'text-primary']"
+            :class="[$route.name === item.name || $route.meta.parentName == item.name ? 'text-theme' : 'text-primary']"
           >
             <svg-icon size="18" :name="item.icon" :stroke="item.stroke"></svg-icon>
             <p class="text-sm leading-none max-w-[100px] truncate">{{ item.title || $t(item.text) }}</p>
@@ -150,7 +150,7 @@ const footerList = ref([
 ])
 
 onMounted(async () => {
-  await navigationStore.fetchNavigations()
+  // await navigationStore.fetchNavigations()
   footerList.value[0].title = navigationStore.agentNavigation.name || ''
   footerList.value[1].title = navigationStore.promptNavigation.name || ''
   footerList.value[2].title = navigationStore.toolkitNavigation.name || ''

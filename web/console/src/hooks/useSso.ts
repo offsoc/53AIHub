@@ -23,9 +23,10 @@ export const useSso = () => {
   })
 
   const loadSyncSetting = async () => {
-    if (!enterprise.info.is_install_wecom) return
-
-    const value = await cacheManager.getOrFetch(SYNC_VALUE_KEY, () => settingStore.get(SYNC_VALUE_KEY))
+    if (!enterprise.info.is_install_wecom && !enterprise.info.is_install_dingtalk) return
+    const value = await cacheManager.getOrFetch(SYNC_VALUE_KEY, () =>
+      settingStore.get(SYNC_VALUE_KEY)
+    )
     syncValue.value = value || {
       key: SYNC_VALUE_KEY,
       setting_id: 0,
@@ -48,6 +49,5 @@ export const useSso = () => {
     isSsoSync,
     loadSyncSetting,
     saveSyncSetting,
-
   }
 }

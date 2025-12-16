@@ -58,6 +58,8 @@ export function transformNavigationItem(rawItem: RawNavigationItem): NavigationI
         '/toolkit': 4,
       }
       icon = `${img_host}/navigation/icon${pathIconMap[rawItem.jump_path]}.png`
+    } else if (rawItem.icon?.indexOf('default') !== -1) {
+      icon = `${img_host}/navigation/icon5.png`
     }
 
     return {

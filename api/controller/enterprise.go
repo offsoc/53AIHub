@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -146,17 +145,50 @@ func UpdateEnterprise(c *gin.Context) {
 
 	oldEnterprise := *enterprise
 
-	enterprise.DisplayName = req.DisplayName
-	enterprise.Logo = req.Logo
-	enterprise.Ico = req.Ico
-	enterprise.Keywords = req.Keywords
-	enterprise.Copyright = req.Copyright
-	enterprise.Type = req.Type
-	enterprise.Language = req.Language
-	enterprise.Description = req.Description
-	enterprise.TemplateType = req.TemplateType
+	// 构建要更新的字段映射
+	updateData := make(map[string]interface{})
 
-	if err := enterprise.Update(); err != nil {
+	if req.DisplayName != "" {
+		updateData["display_name"] = req.DisplayName
+		enterprise.DisplayName = req.DisplayName
+	}
+
+	if req.Logo != "" {
+		updateData["logo"] = req.Logo
+		enterprise.Logo = req.Logo
+	}
+
+	if req.Ico != "" {
+		updateData["ico"] = req.Ico
+		enterprise.Ico = req.Ico
+	}
+
+	updateData["keywords"] = req.Keywords
+	enterprise.Keywords = req.Keywords
+
+	updateData["copyright"] = req.Copyright
+	enterprise.Copyright = req.Copyright
+
+	if req.Type != "" {
+		updateData["type"] = req.Type
+		enterprise.Type = req.Type
+	}
+	if req.Language != "" {
+		updateData["language"] = req.Language
+		enterprise.Language = req.Language
+	}
+	updateData["description"] = req.Description
+	enterprise.Description = req.Description
+
+	if req.TemplateType != "" {
+		updateData["template_type"] = req.TemplateType
+		enterprise.TemplateType = req.TemplateType
+	}
+
+	updateData["layout_type"] = req.LayoutType
+	enterprise.LayoutType = req.LayoutType
+
+	if err := enterprise.PartialUpdateEnterprise(updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -175,7 +207,7 @@ func UpdateEnterprise(c *gin.Context) {
 		config.GetUserNickname(c),
 		model.SystemLogModuleSiteInfo,
 		oldEnterprise,
-		enterprise,
+		*enterprise,
 		utils.GetClientIP(c),
 		fieldMap,
 	)
@@ -279,6 +311,7 @@ func GetCurrentEnterprise(c *gin.Context) {
 	isFeatureAvailable, _ := service.IsFeatureAvailable(c, "wecom", params)
 	if isFeatureAvailable {
 		enterprise.LoadWecomCorpInfo(config.GetWecomSuiteID(), 0)
+		enterprise.LoadDingtalkCorpInfo(config.GetDingtalkSuiteID(), 0)
 	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(EnterpriseResponse{
 		Enterprise: *enterprise,
@@ -480,7 +513,7 @@ func UpdateEnterpriseTemplateType(c *gin.Context) {
 		Nickname: config.GetUserNickname(c),
 		Module:   model.SystemLogModuleTemplate,
 		Action:   model.SystemLogActionUpdate,
-		Content:  fmt.Sprint("编辑模板风格"),
+		Content:  "编辑模板风格",
 		IP:       utils.GetClientIP(c),
 	}
 	model.CreateSystemLog(&log)

@@ -168,7 +168,7 @@ const loadModelList = async () => {
         return {
           ...model,
           value: `${item.model_type}_${model.model_id}`,
-          label: model.model_id,
+          label: model.model_name,
         }
       }),
     }

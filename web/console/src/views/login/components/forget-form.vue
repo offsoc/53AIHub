@@ -30,7 +30,7 @@
       </template>
       <ElInput
         v-model="form.username"
-        style="--el-input-bg-color: #f1f2f3; --el-input-border-color: transparent; --el-input-height: 44px"
+        style="--el-input-height: 44px"
         size="large"
         autocomplete="forgot-username"
         name="prevent_autofill_username"
@@ -81,7 +81,7 @@
       </template>
       <ElInput
         v-model="form.password"
-        style="--el-input-bg-color: #f1f2f3; --el-input-border-color: transparent; --el-input-height: 44px"
+        style="--el-input-height: 44px"
         size="large"
         type="password"
         show-password
@@ -116,7 +116,7 @@
       </template>
       <ElInput
         v-model="form.confirm_password"
-        style="--el-input-bg-color: #f1f2f3; --el-input-border-color: transparent; --el-input-height: 44px"
+        style="--el-input-height: 44px"
         size="large"
         type="password"
         show-password

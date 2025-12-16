@@ -49,8 +49,8 @@
         :indicator-position="enterpriseStore.banner_info.url_list.length > 1 ? 'outside' : 'none'"
         :interval="enterpriseStore.banner_info.interval ? parseInt(enterpriseStore.banner_info.interval * 1000) : 5000"
       >
-        <ElCarouselItem v-for="url in enterpriseStore.banner_info.url_list || []" :key="url" class="w-full">
-          <img :src="url" class="object-cover w-full h-full" />
+        <ElCarouselItem v-for="url in enterpriseStore.banner_info.url_list || []" :key="url" class="w-full !flex items-center justify-center">
+          <img :src="url" class="object-cover max-w-full max-h-full" />
         </ElCarouselItem>
       </ElCarousel>
     </div>
@@ -85,21 +85,21 @@ const activeMenuItem = ref()
 const scrollRef = ref<HTMLElement>()
 provide('mainScrollRef', scrollRef)
 
-const fetchNavigationData = async () => {
-  await navigationStore.fetchNavigations()
-  const customNavigations = navigationStore.navigations.filter((item) => item.type === NAVIGATION_TYPE.CUSTOM)
-  const indexRoute = router.getRoutes().find((item) => item.name === 'Index')
-  customNavigations.forEach((item) => {
-    if (indexRoute) {
-      indexRoute.children.push({
-        path: item.menu_path,
-        name: `Home${item.name}`,
-        component: () => import(`@/views/custom/index.vue`)
-      })
-    }
-  })
-  router.addRoute(indexRoute)
-}
+// const fetchNavigationData = async () => {
+//   await navigationStore.fetchNavigations()
+//   const customNavigations = navigationStore.navigations.filter((item) => item.type === NAVIGATION_TYPE.CUSTOM)
+//   const indexRoute = router.getRoutes().find((item) => item.name === 'Index')
+//   customNavigations.forEach((item) => {
+//     if (indexRoute) {
+//       indexRoute.children.push({
+//         path: item.menu_path,
+//         name: `Home${item.name}`,
+//         component: () => import(`@/views/custom/index.vue`)
+//       })
+//     }
+//   })
+//   router.addRoute(indexRoute)
+// }
 const handleNavigationClick = (data: any) => {
   if (data.type === NAVIGATION_TYPE.EXTERNAL) {
     if (data.target === NAVIGATION_TARGET.BLANK) {
@@ -115,7 +115,7 @@ const is_redirect = ref(false)
 const handleRedirect = async () => {
   const from_home = route.query.from_home as string
   let redirect = route.query.redirect as string
-  await fetchNavigationData()
+  // await fetchNavigationData()
   if (navigationStore.navigations.length) {
     if (+from_home || redirect) {
       is_redirect.value = true
@@ -175,10 +175,11 @@ watch(
     if (config.seo_keywords) setMeta({ key: 'keywords', value: config.seo_keywords })
     if (config.seo_description) setMeta({ key: 'description', value: config.seo_description })
 
-    const priorityPaths = ['/chat', '/agent', '/prompt', '/toolkit', '/index']
-    const matchedPath = priorityPaths.find((item) => path.includes(item))
-    const targetMenu = matchedPath ? navigationStore.navigations.find((item) => item.menu_path.includes(matchedPath)) : null
-    activeMenuItem.value = targetMenu?.menu_path || ''
+    // const priorityPaths = ['/chat', '/agent', '/prompt', '/toolkit', '/index']
+    // const matchedPath = priorityPaths.find((item) => path.includes(item))
+    // const targetMenu = matchedPath ? navigationStore.navigations.find((item) => item.menu_path.includes(matchedPath)) : null
+    // activeMenuItem.value = targetMenu?.menu_path || ''
+    activeMenuItem.value = route.path || ''
   },
   {
     immediate: true
@@ -203,7 +204,7 @@ watch(
 }
 
 ::v-deep(.el-carousel__container) {
-  height: 256px;
+  height: 380px;
 }
 
 @media (width <= 768px) {

@@ -59,6 +59,7 @@ export const useUserStore = defineStore('user-store', {
       }
       this.is_new_user = !!+data.is_new_user
       localStorage.setItem('access_token', this.info.access_token)
+      localStorage.setItem('site_token', this.info.access_token)
       localStorage.setItem('user_info', JSON.stringify(this.info))
       eventBus.emit('user-login-success', this)
       console.log('login')
@@ -92,6 +93,7 @@ export const useUserStore = defineStore('user-store', {
         // #endif
       }
       localStorage.removeItem('access_token')
+      localStorage.removeItem('site_token')
       localStorage.removeItem('user_info')
       this.is_saas_login = false
       this.info = useDefaultUser()

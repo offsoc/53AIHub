@@ -48,19 +48,12 @@ func StreamHandler(c *gin.Context, meta *meta.Meta, resp *http.Response) (*model
 	common.SetEventStreamHeaders(c)
 
 	var sessionID string
-	var currentEvent string
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		logger.SysLogf("%s", line)
+		// logger.SysLogf("%s", line)
 		// 跳过空行
 		if line == "" {
-			continue
-		}
-
-		// 解析SSE格式 - 处理event行
-		if strings.HasPrefix(line, "event:") {
-			currentEvent = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
 			continue
 		}
 
@@ -75,17 +68,12 @@ func StreamHandler(c *gin.Context, meta *meta.Meta, resp *http.Response) (*model
 
 			// 检查结束标志
 			if data == "[DONE]" {
-				c.SSEvent("", "[DONE]")
+				c.SSEvent("message", " [DONE]")
 				c.Writer.Flush()
 				break
 			}
 
-			// 只处理reply类型的事件
-			if currentEvent != "reply" {
-				continue
-			}
-
-			// 转换响应
+			// 转换响应（ConvertStreamResponse现在会处理错误和reply类型）
 			openaiResp := ConvertStreamResponse(data, meta.ActualModelName, previousContent)
 			if openaiResp != nil {
 				// 记录会话ID
@@ -106,12 +94,19 @@ func StreamHandler(c *gin.Context, meta *meta.Meta, resp *http.Response) (*model
 					continue
 				}
 
-				c.SSEvent("", string(respData))
+				c.SSEvent("message", " "+string(respData))
 				c.Writer.Flush()
 
-				// 更新previousContent用于下次计算增量
+				// 检查是否为错误响应，如果是则发送[DONE]并停止处理
+				if len(openaiResp.Choices) > 0 && openaiResp.Choices[0].FinishReason != nil && *openaiResp.Choices[0].FinishReason == "error" {
+					c.SSEvent("message", " [DONE]")
+					c.Writer.Flush()
+					break
+				}
+
+				// 更新previousContent用于下次计算增量（仅在reply类型时）
 				var tencentResp TencentResponse
-				if err := json.Unmarshal([]byte(data), &tencentResp); err == nil {
+				if err := json.Unmarshal([]byte(data), &tencentResp); err == nil && tencentResp.Type == "reply" {
 					previousContent = tencentResp.Payload.Content
 				}
 			}

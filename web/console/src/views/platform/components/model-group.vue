@@ -190,7 +190,7 @@ defineEmits<{
   'model-edit': [{ data: any; parentData: any }]
 }>()
 
-const testMap = ref<Record<string, { loading: boolean; success: boolean }>>({})
+const testMap = ref<Record<string, { loading: boolean; success: boolean; error?: string }>>({})
 
 const getTestKey = (data: any, model: any) => {
   return `${data.channel_id}-${model.value}`
@@ -202,22 +202,22 @@ const getTestResult = (data: any, model: any) => {
 
 const handleTest = (model: any, data: any) => {
   const key = getTestKey(data, model)
-  testMap.value[key] = { loading: true, success: false }
+  testMap.value[key] = { loading: true, success: false, error: '' }
   return channelApi
     .test(data.channel_id, {
       model: model.value,
     })
     .then(res => {
-      testMap.value[key] = { loading: false, success: res ? res.success : false }
+      testMap.value[key] = { loading: false, success: res ? res.success : false, error: res.message ?? '' }
     })
     .catch(() => {
       testMap.value[key] = { loading: false, success: false }
     })
     .finally(() => {
       if (testMap.value[key].success) {
-        ElMessage.success(window.$t('platform.model_test_success', { platform: data.name }))
+        ElMessage.success(window.$t('platform.model_test_success', { platform: data.name || data.label }))
       } else {
-        ElMessage.error(window.$t('platform.model_test_failed'))
+        ElMessage.error(window.$t('platform.failed_tip', { error: testMap.value[key].error }))
       }
     })
 }

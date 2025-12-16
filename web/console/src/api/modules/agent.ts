@@ -26,6 +26,7 @@ interface AgentData {
   agents?: AgentData[]
   count?: number
   settings?: Record<string, any>
+  internal_members?: string[]
 }
 
 interface ListParams {
@@ -95,6 +96,24 @@ export interface RawCozeBotItem {
   icon_url: string
 }
 
+export interface RawTencentAppItem {
+  AppType: string
+  AppTypeDesc: string
+  AppBizId: string
+  Name: string
+  Avatar: string
+  Desc: string
+  AppStatus: number
+  AppStatusDesc: string
+  UpdateTime: string
+  Operator: string
+  ModelAliasName: string
+  Pattern: string
+  ThoughtModelAliasName: string
+  PermissionIds: string[]
+  Creator: string
+}
+
 export interface CozeBotItem extends RawCozeBotItem {
   value: string
   label: string
@@ -120,6 +139,12 @@ export interface BotItem53aiItem extends Raw53aiBotItem {
   value: string
   label: string
   icon: string
+}
+export interface TencentAppItem extends RawTencentAppItem {
+  value: string
+  label: string
+  icon: string
+  description: string
 }
 
 export const transformCozeBotItem = (item: RawCozeBotItem): CozeBotItem => {
@@ -158,6 +183,16 @@ export const transform53aiBotItem = (item: Raw53aiBotItem): BotItem53aiItem => {
   }
 }
 
+export const transformTencentAppItem = (item: RawTencentAppItem): TencentAppItem => {
+  return {
+    ...item,
+    value: item.AppBizId,
+    label: item.Name,
+    icon: item.Avatar,
+    description: item.Desc,
+  }
+}
+
 const parseJsonField = <T>(value: string | T, defaultValue: T): T => {
   if (typeof value !== 'string') return value ?? defaultValue
 
@@ -183,6 +218,7 @@ export function getFormatAgentData(data: AgentData = {}): AgentData {
   data.enable = !!+(data.enable ?? false)
   data.sort = +(data.sort ?? 0)
   data.channel_config = (data.custom_config as any)?.channel_config || {}
+  data.internal_members = []
   return data
 }
 
@@ -318,6 +354,21 @@ export const agentApi = {
     workflow_field_list(workflow_id: string) {
       return service
         .get(`/api/dify/parameters/${workflow_id}`)
+        .then(res => res.data)
+        .catch(handleError)
+    },
+  },
+
+  tencent: {
+    bots_list(params?: { provider_id?: number }) {
+      return service
+        .get('/api/tencent/apps', { params })
+        .then(res => res.data)
+        .catch(handleError)
+    },
+    detail(app_biz_id: string) {
+      return service
+        .get(`/api/tencent/apps/${app_biz_id}`)
         .then(res => res.data)
         .catch(handleError)
     },

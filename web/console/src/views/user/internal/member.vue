@@ -134,6 +134,7 @@ const tableData = ref<Member[]>([])
 const tableTotal = ref(0)
 
 const isSsoSync = computed(() => props.syncFrom !== ENTERPRISE_SYNC_FROM.DEFAULT)
+const isDingtalkSync = computed(() => props.syncFrom === ENTERPRISE_SYNC_FROM.DINGTALK)
 
 const fetchUserList = async () => {
   if (loading.value)
@@ -180,6 +181,7 @@ const handleEdit = (data) => {
     data: {
       ...data,
       status: data.user_status,
+      nickname: props.syncFrom === ENTERPRISE_SYNC_FROM.DINGTALK ? data.name : data.nickname
     },
     success: () => {
       fetchUserList()
@@ -209,7 +211,7 @@ const onPageChange = (page: number) => {
 
 const loadUserList = async () => {
   const NO_BIND = 1
-  userApi.fetch_internal_user({ limit: 1000, not_bind: NO_BIND, from: 1 }).then((res) => {
+  userApi.fetch_internal_user({ limit: 1000, not_bind: NO_BIND, from: props.syncFrom }).then((res) => {
     relate.list = res.list
   })
 }
@@ -324,17 +326,17 @@ defineExpose({
         @page-size-change="onPageSizeChange"
       >
         <ElTableColumn
-          :label="$t('internal_user.account.nickname')" min-width="140" prop="nickname"
+          :label="$t('internal_user.account.nickname')" min-width="140" :prop="isDingtalkSync ? 'name' : 'nickname'"
           show-overflow-tooltip
         >
           <template #default="{ row }">
             <div class="flex items-center gap-1">
-              <OpenData type="userName" :openid="row.bind_value" :text="row.nickname" />
+              <OpenData type="userName" :openid="row.bind_value" :text="isDingtalkSync ? row.name : row.nickname" />
               <template v-if="isSsoSync">
                 <template v-if="row.user_id">
                   ({{ row.nickname }})
                 </template>
-                <img v-else :src="$getRealPath({ url: '/images/sso/wecom.png' })" class="size-4">
+                <img v-else :src="$getRealPath({ url: `/images/sso/${isDingtalkSync ? 'dingtalk' : 'wecom'}.png` })" class="size-4">
               </template>
             </div>
           </template>

@@ -294,7 +294,7 @@
             </el-form-item>
 
             <el-form-item
-              v-else-if="item.type === 'file'"
+              v-else-if="['file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)"
               :prop="`${index}.value`"
               :label="item.label"
               :required="item.required"
@@ -315,7 +315,6 @@
                   >
                     <div class="w-20 h-20 border border-dashed rounded-sm flex-center flex-col">
                       <!-- <img class="w-4 h-4" src="/images/upload.png" /> -->
-
                       <div class="text-xs text-[#182B5066] mt-2">点击上传</div>
                     </div>
                   </FileUpload>
@@ -349,6 +348,50 @@
                 </div>
               </div>
             </el-form-item>
+
+            <template v-if="item.type === 'array_text'">
+              <el-form-item
+                v-for="(input, inputIndex) in item.value"
+                :key="inputIndex"
+                :prop="`${index}.value[${inputIndex}]`"
+                :label="inputIndex === 0 ? item.label : ''"
+                :required="item.required"
+                :rules="[
+                  { required: item.required, message: $t('form.input_placeholder') + item.label, trigger: 'blur' },
+                ]"
+                class="relative"
+              >
+                <el-input
+                  v-model="item.value[inputIndex]"
+                  size="large"
+                  :placeholder="$t('form.input_placeholder')"
+                  :maxlength="item.max_length ? item.max_length : -1"
+                  :show-word-limit="item.show_word_limit"
+                >
+                  <template #suffix>
+                    <svg-icon
+                      name="del"
+                      width="16"
+                      class="cursor-pointer hover:opacity-60"
+                      @click="handleArrayTextDelete(item, inputIndex)"
+                    />
+                  </template>
+                </el-input>
+                <div v-if="item.desc" class="text-xs text-[#182b50] text-opacity-30 mt-1">
+                  {{ item.desc }}
+                </div>
+                <el-button
+                  v-if="inputIndex === 0"
+                  link
+                  type="primary"
+                  class="absolute -top-7 right-0"
+                  @click="handleArrayTextAdd(item)"
+                >
+                  <el-icon class="mr-1"><Plus /></el-icon>
+                  {{ $t('action_add') }}
+                </el-button>
+              </el-form-item>
+            </template>
           </template>
         </el-form>
         <div>
@@ -363,7 +406,7 @@
 
 <script setup lang="ts">
 import { watch, ref } from 'vue'
-import { Loading, RefreshRight, Warning, Close } from '@element-plus/icons-vue'
+import { Loading, RefreshRight, Warning, Close, Plus } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import FileUpload from '@/components/Upload/index.vue'
 import PromptInput from '@/components/Prompt/input.vue'
@@ -376,6 +419,7 @@ import { useConversationStore } from '@/stores'
 import { generateRandomId } from '@/utils'
 import { isUrl } from '@/utils/url'
 import { outputDefaultField } from '@/constants/agent'
+import { AGENT_TYPES } from '@/constants/platform/config'
 
 const store = useAgentFormStore()
 const conversationStore = useConversationStore()
@@ -425,10 +469,16 @@ const validator = (item: FormItem) => {
 const setFormatForm = () => {
   initialHasOutputFields.value = store.form_data.settings.output_fields.length > 0
   form.value = (store.form_data.settings.input_fields || []).map(item => {
-    if (['tag', 'file'].includes(item.type)) {
+    if (['tag', 'file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)) {
       return {
         ...item,
         value: [],
+      }
+    }
+    if (item.type === 'array_text') {
+      return {
+        ...item,
+        value: [''],
       }
     }
     return {
@@ -483,6 +533,17 @@ const handleDelTag = (item: FormItem, index: number) => {
   item.value.splice(index, 1)
 }
 
+const handleArrayTextAdd = (item: FormItem) => {
+  item.value.push('')
+}
+const handleArrayTextDelete = (item: FormItem, index: number) => {
+  if (item.value.length === 1) {
+    item.value = ['']
+    return
+  }
+  item.value.splice(index, 1)
+}
+
 const handleViewFile = (file: any) => {
   window.open(file.url, '_blank')
 }
@@ -492,10 +553,19 @@ const handleDelFile = (file: any, item: FormItem) => {
 
 const getInputs = () => {
   const inputs = form.value.reduce((result, item) => {
+    if (item.value.toString() === '') return result
     if (item.type === 'file') {
-      result[`${item.variable}`] = Array.isArray(item.value)
-        ? item.value.map(item => `file_id:${item.id}`).join(',')
-        : `file_id:${item.value}`
+      if (store.agent_type !== AGENT_TYPES.COZE_WORKFLOW_CN) {
+        result[`${item.variable}`] = Array.isArray(item.value)
+          ? item.value.map(item => `file_id:${item.id}`).join(',')
+          : `file_id:${item.value}`
+      } else {
+        result[`${item.variable}`] = `file_id:${item.value[0].id}`
+      }
+    } else if (['array_image', 'array_audio', 'array_video', 'array_file'].includes(item.type)) {
+      result[`${item.variable}`] = item.value.map(item => `file_id:${item.id}`)
+    } else if (item.type === 'array_text') {
+      result[`${item.variable}`] = item.value
     } else {
       result[`${item.variable}`] =
         item.type === 'select' && !item.multiple
@@ -562,6 +632,7 @@ const handleStartRunning = async () => {
       const res = JSON.parse(response)
       if (store.form_data.settings.output_fields.length > 0) {
         const output: Record<string, string> = store.form_data.settings.output_fields.reduce((result, item) => {
+          if (!res.data.workflow_output_data[item.variable]) return result
           result.push({
             id: item.id,
             label: item.label,

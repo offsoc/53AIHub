@@ -26,6 +26,7 @@ export type WebsiteVersion = (typeof WEBSITE_VERSION)[keyof typeof WEBSITE_VERSI
 export const ENTERPRISE_SYNC_FROM = {
   DEFAULT: '0',
   WECOM: '1',
+  DINGTALK: '2',
 } as const
 export type EnterpriseSyncFrom = (typeof ENTERPRISE_SYNC_FROM)[keyof typeof ENTERPRISE_SYNC_FROM]
 

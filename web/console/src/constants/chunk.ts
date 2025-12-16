@@ -6,16 +6,20 @@ export const CHUNK_SETTING_DEFAULT = {
   chunking_config: {
     version: '1.0',
     knowledge_chunking: {
-      split_rule: 'none',
+      split_rule: 'h2',
       max_length: 2000,
       overlap_size: 0,
       include_title: false,
+      include_filename: false,
+      chunk_mode: '',
     },
     index_chunking: {
-      split_rule: 'none',
+      split_rule: 'h2',
       max_length: 2000,
       overlap_size: 0,
       include_title: false,
+      include_filename: false,
+      chunk_mode: '',
     },
     content_summary: {
       generation_method: 'manual',
@@ -26,20 +30,4 @@ export const CHUNK_SETTING_DEFAULT = {
   },
   created_time: 0,
   updated_time: 0,
-}
-
-export const SUMMARY_GENERATION = {
-  MANUAL: 'manual',
-  AI: 'ai',
-}
-
-export const QUESTION_GENERATION = {
-  MANUAL: 'manual',
-  AI: 'ai',
-}
-
-export const SPLIT_TYPE = {
-  HEADING: 'heading',
-  NONE: 'none',
-  CUSTOM: 'custom',
 }

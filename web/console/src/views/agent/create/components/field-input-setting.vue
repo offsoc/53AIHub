@@ -84,7 +84,7 @@
         <el-switch v-model="widgetForm.required" />
       </el-form-item>
       <el-form-item
-        v-if="['text', 'textarea'].includes(widgetForm.type) && type === 'input'"
+        v-if="['text', 'textarea', 'array_text'].includes(widgetForm.type) && type === 'input'"
         :label="$t('agent.variable_max_length')"
       >
         <el-input-number
@@ -99,7 +99,7 @@
         />
       </el-form-item>
       <el-form-item
-        v-if="['text', 'textarea'].includes(widgetForm.type) && type === 'input'"
+        v-if="['text', 'textarea', 'array_text'].includes(widgetForm.type) && type === 'input'"
         :label="$t('agent.variable_show_word_limit')"
       >
         <el-switch v-model="widgetForm.show_word_limit" />
@@ -131,8 +131,16 @@
           <el-radio size="large" :label="true"> 多选 </el-radio>
         </el-radio-group>
       </el-form-item>
-      <template v-if="widgetForm.type === 'file'">
-        <el-form-item label="上传文件类型">
+      <template
+        v-if="
+          ['file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(widgetForm.type) &&
+          type === 'input'
+        "
+      >
+        <el-form-item
+          v-if="!['array_image', 'array_audio', 'array_video'].includes(widgetForm.type)"
+          label="上传文件类型"
+        >
           <el-select
             v-model="widgetForm.file_type"
             class="w-full"
@@ -147,21 +155,17 @@
         <el-form-item
           v-if="widgetForm.file_type === 'custom'"
           label="支持文件格式"
+          prop="file_accept"
           required
           :rules="generateInputRules({ message: 'form.select_placeholder' })"
         >
           <el-select v-model="widgetForm.file_accept" multiple class="w-full" size="large" placeholder="请选择">
-            <el-option label="docx" value="docx" />
-            <el-option label="pdf" value="pdf" />
-            <el-option label="xlsx" value="xlsx" />
-            <el-option label="csv" value="csv" />
-            <el-option label="txt" value="txt" />
-            <el-option label="png" value="png" />
-            <el-option label="jpg" value="jpg" />
-            <el-option label="bmp" value="bmp" />
-            <el-option label="markdown" value="md" />
-            <el-option label="tiff" value="tiff" />
-            <el-option label="html" value="html" />
+            <el-option
+              v-for="item in fileAcceptOptions"
+              :key="item"
+              :label="item === 'md' ? 'markdown' : item"
+              :value="item"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="单个文件上限">
@@ -172,7 +176,7 @@
             <span class="text-sm text-[#182B50]">{{ widgetForm.file_size }}M</span>
           </div>
         </el-form-item>
-        <el-form-item label="上传最大数量">
+        <el-form-item v-if="showFileLimit" label="上传最大数量">
           <div class="flex items-center gap-2">
             <el-input-number
               v-model="widgetForm.file_limit"
@@ -201,6 +205,7 @@ import type { FormInstance } from 'element-plus'
 import { generateInputRules } from '@/utils/form-rule'
 import { generateRandomId } from '@/utils'
 import { inputTypeList, outputTypeList, outputDefaultField } from '@/constants/agent'
+import { AGENT_TYPES } from '@/constants/platform/config'
 
 const props = defineProps<{
   type: 'input' | 'output'
@@ -216,7 +221,7 @@ const visible = ref(false)
 
 const widgetForm = ref<Agent.Field>({
   ...outputDefaultField,
-  file_accept: ['doc', 'docx', 'pdf', 'xlsx', 'csv', 'txt', 'png', 'jpg', 'bmp', 'md', 'tiff', 'html'],
+  file_accept: [],
 })
 
 const typeList = computed(() => {
@@ -229,8 +234,40 @@ const typeLabel = computed(() => {
   return [...inputTypeList, ...outputTypeList].find(item => item.type === widgetForm.value.type)?.label
 })
 
+const fileAcceptOptions = computed(() => {
+  if (widgetForm.value.type.includes('file')) {
+    return ['doc', 'docx', 'pdf', 'xlsx', 'csv', 'txt', 'png', 'jpg', 'bmp', 'md', 'tiff', 'html']
+  }
+  if (widgetForm.value.type === 'array_image') {
+    return ['png', 'jpg', 'bmp', 'tiff']
+  }
+  if (widgetForm.value.type === 'array_audio') {
+    return ['mp3', 'wav', 'flac', 'aac', 'ogg']
+  }
+  if (widgetForm.value.type === 'array_video') {
+    return ['mp4', 'mov', 'flv', 'm4v', 'wmv']
+  }
+  return []
+})
+
+const showFileLimit = computed(() => {
+  return props.agentType === AGENT_TYPES.COZE_WORKFLOW_CN ? widgetForm.value.type !== 'file' : true
+})
+
 const handleType = item => {
   widgetForm.value.type = item.type
+  if (
+    props.agentType === AGENT_TYPES.COZE_WORKFLOW_CN &&
+    ['file', 'array_image', 'array_audio', 'array_video', 'array_file'].includes(widgetForm.value.type)
+  ) {
+    widgetForm.value.file_accept = []
+    if (widgetForm.value.type === 'file') widgetForm.value.file_limit = 1
+    if (['array_image', 'array_audio', 'array_video'].includes(widgetForm.value.type)) {
+      widgetForm.value.file_type = 'custom'
+    } else {
+      widgetForm.value.file_type = 'all'
+    }
+  }
 }
 
 const handleAddOption = () => {
@@ -246,8 +283,7 @@ const handleDelOption = index => {
 }
 
 const handleFileTypeChange = (fileType: string, form: Agent.Field) => {
-  if (fileType === 'all')
-    form.file_accept = ['doc', 'docx', 'pdf', 'xlsx', 'csv', 'txt', 'png', 'jpg', 'bmp', 'md', 'tiff', 'html']
+  form.file_accept = []
 }
 const handleSave = async () => {
   const is_valid = await formRef.value?.validate()

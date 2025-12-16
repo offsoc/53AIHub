@@ -1,6 +1,6 @@
 <template>
   <div v-if="currentAgent.settings_obj?.relate_agents?.length">
-    <el-divider v-if="isWorkflow">
+    <el-divider v-if="isWorkflow" class="divider text-center">
       <span class="text-sm text-secondary">{{ $t('chat.completion_next_action') }}</span>
     </el-divider>
     <div v-else class="flex items-center">
@@ -100,4 +100,10 @@ const handleNextAgent = (item) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+@media (width <= 768px) {
+  :deep(.divider .el-divider__text) {
+    width: 55%;
+  }
+}
+</style>

@@ -177,6 +177,7 @@ export const transformSelectData = (data: RawChannelItem, type?: string): Channe
     options: models.map(value => {
       return {
         value: `${data.channel_id}_${value}`,
+        model_value: `${data.channel_id}_${value}_${data.type}`,
         label: result.aliasMap[value] || value,
         icon: getModelIcon(value) || result.icon,
       }
@@ -239,7 +240,7 @@ export const channelApi = {
   test(channel_id: number, params?: { model?: string }): Promise<ChannelTestResponse> {
     return service
       .get(`/api/channels/test/${channel_id}`, { params })
-      .then(res => res.data)
+      .then(res => res.data ?? res)
       .catch(handleError)
   },
 }

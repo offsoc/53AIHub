@@ -185,8 +185,9 @@
         </div>
         <div class="flex flex-col px-2 max-md:hidden">
           <template v-for="(item, index) in navigationStore.navigations" :key="index">
+            <!-- 首页隐藏 -->
             <router-link
-              v-if="item.type !== NAVIGATION_TYPE.EXTERNAL"
+              v-if="item.type !== NAVIGATION_TYPE.EXTERNAL && item.jump_path !== '/index'"
               :to="{ path: item.jump_path }"
               class="h-9 px-2 rounded-md flex items-center gap-0.5 mt-1.5 cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
               :class="[route.path === item.jump_path ? 'bg-[#ECEDEE]' : '']"
@@ -201,7 +202,7 @@
             </router-link>
 
             <a
-              v-else
+              v-else-if="item.jump_path !== '/index'"
               :href="item.jump_path"
               :target="item.target === NAVIGATION_TARGET.BLANK ? '_blank' : '_self'"
               rel="noopener noreferrer"
@@ -566,8 +567,7 @@ const loadConversations = () => {
 
 onMounted(async () => {
   agentStore.loadCategorys()
-  navigationStore.fetchNavigations()
-
+  // await navigationStore.fetchNavigations()
   await agentStore.loadAgentList()
   loadConversations()
   eventBus.on(EVENT_NAMES.LOGIN_SUCCESS, () => {

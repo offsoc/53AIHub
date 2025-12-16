@@ -2,7 +2,7 @@
   <Layout class="px-[60px] py-8">
     <Header :title="$t('module.website_info')" />
 
-    <div v-loading="loading" class="mt-5 flex-1 flex flex-col bg-white py-6 px-8 box-border">
+    <div class="mt-5 flex-1 flex flex-col bg-white py-6 px-8 box-border">
       <ElForm
         ref="form_ref"
         class="flex-1 max-h-[calc(100vh-264px)] overflow-auto"
@@ -179,14 +179,13 @@
 
 <script setup lang="ts">
 import { Check } from '@element-plus/icons-vue'
-import { computed, getCurrentInstance, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, getCurrentInstance, reactive, ref, watch } from 'vue'
 import UploadLogo from '@/components/Upload/image.vue'
 import ServiceDialog from '@/components/ServiceDialog/index.vue'
 
 import { useEnterpriseStore } from '@/stores'
 
 import { generateInputRules } from '@/utils/form-rule'
-import eventBus from '@/utils/event-bus'
 import { useEnv } from '@/hooks/useEnv'
 
 import {
@@ -204,7 +203,6 @@ const enterprise_store = useEnterpriseStore()
 const form_ref = ref()
 const service_visible = ref(false)
 const service_title = ref('')
-const loading = ref(true)
 const submitting = ref(false)
 const enterprise_info = computed(() => enterprise_store.info)
 
@@ -282,15 +280,8 @@ const handleSave = async () => {
   enterprise_store.loadSelfInfo()
 }
 const loadedHandler = () => {
-  loading.value = false
+  // loading.value = false
 }
-
-onMounted(() => {
-  eventBus.on('enterprise-info-loaded', loadedHandler)
-})
-onUnmounted(() => {
-  eventBus.off('enterprise-info-loaded', loadedHandler)
-})
 
 watch(
   () => enterprise_info.value,

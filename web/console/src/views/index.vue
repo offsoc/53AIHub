@@ -28,7 +28,7 @@
         </div>
         <div class="mt-10 flex flex-col gap-6">
           <!-- #ifndef KM -->
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ isOpLocalEnv ? $t('website_home') : $t('website_domain') }}
             </div>
@@ -53,7 +53,7 @@
           </div>
           <!-- #endif -->
           <!-- #ifdef KM -->
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('website_home') }}
             </div>
@@ -70,7 +70,7 @@
           </div>
           <!-- #endif -->
 
-          <div v-if="isSaasLogin" class="flex items-center gap-8">
+          <div v-if="isSaasLogin" class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('version.title') }}
             </div>
@@ -89,7 +89,7 @@
               </el-button>
             </div>
           </div>
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('module.agent') }}
             </div>
@@ -99,7 +99,7 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('module.prompt') }}
             </div>
@@ -107,7 +107,7 @@
               <div class="text-base text-[#1D1E1F]">{{ formatNumber(+indexInfo.prompt_count || 0) }} / ∞</div>
             </div>
           </div>
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('module.ai_toolbox') }}
             </div>
@@ -115,7 +115,7 @@
               <div class="text-base text-[#1D1E1F]">{{ formatNumber(+indexInfo.ai_link_count || 0) }} / ∞</div>
             </div>
           </div>
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('register_user.title') }}
             </div>
@@ -125,7 +125,7 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-8">
+          <div class="flex max-md:gap-2 md:gap-8 max-md:flex-col md:items-center">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('create_time') }}
             </div>
@@ -135,7 +135,7 @@
               </div>
             </div>
           </div>
-          <div v-if="isSaasLogin" class="flex items-center gap-8">
+          <div v-if="isSaasLogin" class="flex max-md:gap-2 md:gap-8 max-md:flex-col">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('service_expired_time') }}
             </div>
@@ -157,7 +157,7 @@
         </div>
         <div class="w-full h-[67px]" />
       </div>
-      <div class="ml-[48px] pt-[68px] flex flex-col items-end">
+      <div class="ml-[48px] pt-[68px] flex flex-col items-end max-lg:hidden">
         <div class="flex flex-col gap-3 w-[238px]">
           <div class="flex justify-between text-sm text-[#4F5052]">
             <span>{{ $t('configuration_completion') }}</span>

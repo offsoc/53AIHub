@@ -20,6 +20,9 @@ BUILD_FLAGS = -v
 
 all: clean fmt lint test build
 
+build:
+	$(GOBUILD) $(BUILD_FLAGS) -o $(BIN_DIR)/$(BINARY_NAME) ./main.go
+
 sbuild:
 	$(GOBUILD) $(BUILD_FLAGS) -o $(BIN_DIR)/$(BINARY_NAME) -v -ldflags="-X 'github.com/53AI/53AIHub/config.VersionTime=$(shell date +%Y%m%d%H%M%S)' -linkmode external -extldflags '-static'" ./main.go
 

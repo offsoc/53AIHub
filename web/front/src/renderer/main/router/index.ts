@@ -5,6 +5,9 @@ import { checkPermission } from '@/utils/permission'
 import useEnv from '@/hooks/useEnv'
 
 import { useUserStore } from '@/stores/modules/user'
+import { useNavigationStore } from '@/stores/modules/navigation'
+import { useEnterpriseStore } from '@/stores/modules/enterprise'
+import { NAVIGATION_TYPE } from '@/constants/navigation'
 
 const { isOpLocalEnv } = useEnv()
 
@@ -13,7 +16,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'Home',
     redirect: () => {
-      return window.innerWidth < 768 || window.electron ? '/agent' : '/index-redirect?from_home=1'
+      return window.innerWidth < 768 || window.electron ? '/agent' : '/index'
     },
     // redirect: '/index',
     component: () => import('@/layout/index.vue'),
@@ -56,7 +59,10 @@ const routes: RouteRecordRaw[] = [
       {
         path: '/prompt/:prompt_id',
         name: 'PromptDetail',
-        component: () => import('@/views/prompt/detail/index.vue')
+        component: () => import('@/views/prompt/detail/index.vue'),
+        meta: {
+          parentName: 'Prompt'
+        }
       },
       {
         path: '/order',
@@ -111,7 +117,6 @@ const routes: RouteRecordRaw[] = [
       }
     ]
   },
-
   {
     path: '/share/chat',
     name: 'ShareChat',
@@ -125,29 +130,20 @@ const routes: RouteRecordRaw[] = [
     name: 'Guide',
     component: () => import('@/components/Lead/index.vue')
   },
-
+  {
+    path: '/desktop',
+    name: 'Desktop',
+    component: () => import('@/views/desktop/index.vue')
+  },
   {
     path: '/svglist',
     name: 'Svg',
     component: () => import('@/views/svglist/index.vue')
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'NotFound',
-    redirect: '/404'
-  },
-  {
-    path: '/index/:pathMatch(.*)*',
-    name: 'IndexNotFound',
-    redirect: () => {
-      const redirect = window.location.hash.replace('#', '')
-      return `/index-redirect?redirect=${redirect}`
-    }
   }
 ]
 
-export const isHashRouter = true
-export const isHistoryRouter = false
+export const isHashRouter = !!window.electron
+export const isHistoryRouter = !window.electron
 
 export const router = createRouter({
   // electron环境 需要使用hash跳转
@@ -182,12 +178,19 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   const userStore = useUserStore()
+
+  // 单点登录
+  if (to.path === '/index/apilogin') {
+    await userStore.sso_login()
+    next('/')
+    return
+  }
+
   const isLoggedIn = localStorage.getItem('access_token') // 或其他判断用户是否登录的方法
   if (isLoggedIn) {
     userStore.getUserInfo()
   }
 
-  const { useEnterpriseStore } = await import('@/stores/modules/enterprise')
   const enterpriseStore = useEnterpriseStore()
   if (!enterpriseStore.display_name) await enterpriseStore.loadInfo()
   const isWebsite = !enterpriseStore.isSoftStyle
@@ -211,7 +214,63 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
+// 动态加载路由
+export const initialDynamicRoutes = async () => {
+  const enterpriseStore = useEnterpriseStore()
+  const parentName = enterpriseStore.isSoftStyle ? 'Home' : 'Index'
+  const parentRoute = router.getRoutes().find((item) => item.name === parentName)
+  const navigationStore = useNavigationStore()
+  await navigationStore.fetchNavigations()
+  // 自定义页
+  const customNavigations = navigationStore.navigations.filter(
+    (item) => item.type === NAVIGATION_TYPE.CUSTOM
+  )
+  customNavigations.forEach((item) => {
+    let childRoute: any = null
+    if (parentRoute) {
+      if (enterpriseStore.isSoftStyle) {
+        childRoute = {
+          path: item.jump_path,
+          name: `Home${item.name}`,
+          component: () => import(`@/views/custom/index.vue`),
+          meta: {
+            softCustom: true
+          }
+        }
+      } else {
+        childRoute = {
+          path: item.menu_path,
+          name: `Home${item.name}`,
+          component: () => import(`@/views/custom/index.vue`)
+        }
+      }
+    }
+    router.addRoute(parentName, childRoute)
+  })
+  router.addRoute({
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    // redirect: '/404',
+    redirect: '/agent'
+  })
+  router.addRoute({
+    path: '/index/:pathMatch(.*)*',
+    name: 'IndexNotFound',
+    redirect: () => {
+      const redirect = window.location.hash.replace('#', '')
+      return `/index-redirect?redirect=${redirect}`
+    }
+  })
+}
+
 export async function setupRouter(app: App) {
   app.use(router)
   await router.isReady()
+  await initialDynamicRoutes()
+  // 动态路由加载完成后，确认当前路径有效并重新激活它
+  const { fullPath } = router.currentRoute.value
+  const isMatched = router.resolve(fullPath).matched.length > 0
+  if (isMatched && fullPath !== '/') {
+    await router.replace(fullPath)
+  }
 }

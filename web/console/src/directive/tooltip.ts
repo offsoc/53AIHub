@@ -96,7 +96,7 @@ const autoShowToolTip = (el: any, binding: DirectiveBinding) => {
 
   // 计算元素在页面中的宽度、高度
   const style: any = window.getComputedStyle(el, null)
-  const maxWidth = parseInt(style.width || style.width) || 0
+  const maxWidth = parseInt(style.maxWidth) || parseInt(style.width || style.width) || 0
   const maxHeight = parseInt(style.height)
   // 获取元素的padding
   const pLeft = style['padding-left']

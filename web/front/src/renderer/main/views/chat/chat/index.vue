@@ -451,9 +451,10 @@ const processStreamData = (e: any, processedLength: number): number => {
     const lines = newChunk.split('\n').filter((line) => line.trim() !== '' && line.trim() !== 'data: [DONE]')
     console.log(lines)
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
+      if (line.startsWith('data:')) {
         try {
-          const data = JSON.parse(line.slice(6))
+          const text = line.split(/data\:\s*/g)
+          const data = JSON.parse(text[1])
           const { message_id } = data
           const content = data.choices?.[0]?.delta?.content
           const reasoning_content = data.choices?.[0]?.delta?.reasoning_content
@@ -632,6 +633,7 @@ const sendMessage = async (query: string, user_files: any[]) => {
         lastMessage.answer = err.response.data || window.$t('response_code.network_error')
       }
     }
+    ElMessage.warning(window.$t('agent.failed_tip'))
   } finally {
     const lastMessage = state.messageList[state.messageList.length - 1]
     if (lastMessage) {

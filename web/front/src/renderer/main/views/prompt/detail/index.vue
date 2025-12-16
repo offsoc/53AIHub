@@ -85,7 +85,7 @@
                   </div>
                   <div class="absolute inset-0"></div>
                   <div
-                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 px-5 bg-[#6F7275] rounded-full flex items-center gap-1"
+                    class="w-48 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 px-5 bg-[#6F7275] rounded-full flex items-center gap-1"
                   >
                     <svg-icon name="lock" color="#fff"></svg-icon>
                     <span class="text-sm text-white">{{ $t('prompt.auth_tip') }}</span>
@@ -161,7 +161,7 @@
       <div
         v-if="isUseCase"
         class="bg-white overflow-y-auto"
-        :class="[useCaseFixed && isUseCase ? '' : 'absolute h-full top-0 left-0 right-0 bottom-0 z-[9999]']"
+        :class="[useCaseFixed && isUseCase ? '' : 'absolute h-screen top-0 left-0 right-0 bottom-0 z-[9]']"
       >
         <MainHeader sticky hide-user :back="showBack">
           <template #before_suffix>

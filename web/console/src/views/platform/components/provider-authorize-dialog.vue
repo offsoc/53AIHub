@@ -195,6 +195,31 @@ const PLATFORM_CONFIGS: Record<ProviderValueType, PlatformConfig> = {
       form.access_token = form.access_token.trim()
     },
   },
+  [PROVIDER_VALUE.TENCENT]: {
+    i18n_key: 'platform_auth.tencent.tip',
+    tip: { url: 'https://console.cloud.tencent.com/cam/capi/' },
+    fields: [
+      {
+        label: window.$t('module.platform_auth_url'),
+        prop: 'base_url',
+        placeholder: window.$t('module.platform_model_base_url_placeholder_53ai'),
+      },
+      {
+        label: window.$t('module.platform_auth_secret_id'),
+        prop: 'configs.secret_id',
+        placeholder: window.$t('module.platform_auth_secret_id_placeholder'),
+      },
+      {
+        label: window.$t('module.platform_auth_secret_key'),
+        prop: 'configs.secret_key',
+        placeholder: window.$t('module.platform_auth_secret_key_placeholder'),
+      },
+    ],
+    setFormData: (form: AuthForm) => {
+      form.base_url = form.base_url.trim() || 'https://wss.lke.cloud.tencent.com'
+      form.configs.region = 'ap-guangzhou'
+    },
+  },
 }
 
 // 计算属性

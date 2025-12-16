@@ -348,7 +348,8 @@ export default {
   agent: {
     no_data: '管理员还未发布智能体',
     dialogue_type: '对话型',
-    applied_type: '应用型'
+    applied_type: '应用型',
+    failed_tip: '请检查授权key是否可用以及余额是否充足'
   },
 
   prompt: {

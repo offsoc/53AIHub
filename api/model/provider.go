@@ -30,6 +30,7 @@ const (
 	ProviderTypeAppBuilder = 3
 	ProviderType53AI       = 4
 	ProviderTypeCozeStudio = 5
+	ProviderTypeTencent    = 6
 )
 
 // GetBaseURLByProviderType returns the base URL based on provider type

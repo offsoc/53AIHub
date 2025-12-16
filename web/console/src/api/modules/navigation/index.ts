@@ -95,7 +95,7 @@ export const navigationApi = {
    * 更新导航排序
    */
   updateSort(sortList: UpdateNavigationSortData) {
-    return service.put('/api/navigations/sort', { sort_list: sortList }).catch(handleError)
+    return service.post('/api/navigations/sort', sortList).catch(handleError)
   },
 
   /**

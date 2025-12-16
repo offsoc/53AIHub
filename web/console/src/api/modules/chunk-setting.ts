@@ -11,15 +11,19 @@ export interface ChunkSetting {
     }
     index_chunking: {
       include_title: true
+      include_filename: true
       max_length: number
       overlap_size: number
       split_rule: string
+      chunk_mode: string
     }
     knowledge_chunking: {
       include_title: true
+      include_filename: true
       max_length: number
       overlap_size: number
       split_rule: string
+      chunk_mode: string
     }
     version: string
   }
@@ -41,10 +45,12 @@ export interface ModelSetting {
     version: string
     logic_reasoning: {
       channel_id: number | null
+      channel_type: number | null
       model_name: string | null
     }
     vector_embedding: {
       channel_id: number | null
+      channel_type: number | null
       model_name: string | null
     }
     search_config: {
@@ -53,6 +59,7 @@ export interface ModelSetting {
       hybrid: boolean
       rerank_model: string
       rerank_channel_id: number
+      rerank_channel_type: number
       rerank_model_name: string
       reranking_enable: boolean
       top_k: number

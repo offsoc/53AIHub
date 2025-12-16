@@ -13,6 +13,7 @@ import (
 
 // 只返回类型和启用状态
 type ConfigTypeStatus struct {
+	// smtp, auth_sso
 	Type    string `json:"type"`
 	Enabled bool   `json:"enabled"`
 }
@@ -53,7 +54,7 @@ func GetEnterpriseConfigTypes(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param type path string true "配置类型"
+// @Param type path string true "配置类型: smtp, auth_sso"
 // @Success 200 {object} model.CommonResponse{data=model.EnterpriseConfig}
 // @Router /api/enterprise-configs/{type} [get]
 func GetEnterpriseConfig(c *gin.Context) {
@@ -87,7 +88,7 @@ func GetEnterpriseConfig(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param type path string true "配置类型"
+// @Param type path string true "配置类型: smtp, auth_sso"
 // @Success 200 {object} model.CommonResponse{data=bool}
 // @Router /api/enterprise-configs/{type}/enabled [get]
 func IsEnterpriseConfigEnabled(c *gin.Context) {
@@ -120,7 +121,7 @@ type SaveEnterpriseConfigRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param type path string true "配置类型"
+// @Param type path string true "配置类型: smtp, auth_sso"
 // @Param config body SaveEnterpriseConfigRequest true "企业配置"
 // @Success 200 {object} model.CommonResponse{data=model.EnterpriseConfig}
 // @Router /api/enterprise-configs/{type} [post]
@@ -150,7 +151,7 @@ func SaveEnterpriseConfig(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param type path string true "配置类型"
+// @Param type path string true "配置类型: smtp, auth_sso"
 // @Success 200 {object} model.CommonResponse{data=bool}
 // @Router /api/enterprise-configs/{type}/toggle [put]
 func ToggleEnterpriseConfig(c *gin.Context) {

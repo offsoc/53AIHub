@@ -120,7 +120,7 @@ function http<T = any>({
       let intact_reasoning_content = ''
       if (responseText) {
         chunks = responseText
-          .split('data: ')
+          .split(/data\:\s*/g)
           .filter(text => text)
           .map(text => {
             try {
@@ -132,6 +132,7 @@ function http<T = any>({
               }
               return null
             } catch (error) {
+              console.log(text, error)
               return null
             }
           })
@@ -148,6 +149,7 @@ function http<T = any>({
             item.intact_reasoning_content = intact_reasoning_content
             return item
           })
+        console.log(chunks)
       }
       origin_onDownloadProgress({ progressEvent, chunks, intact_content, intact_reasoning_content })
     }
